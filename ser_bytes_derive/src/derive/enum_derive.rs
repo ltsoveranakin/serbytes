@@ -1,7 +1,9 @@
+use crate::derive::shared::{
+    impl_from_named_fields, impl_from_unnamed_fields, impl_to_named_fields, impl_to_unnamed_fields,
+};
 use proc_macro2::Ident;
 use quote::quote;
 use syn::{DataEnum, Fields, Variant};
-use crate::derive::shared::{impl_from_named_fields, impl_from_unnamed_fields, impl_to_named_fields, impl_to_unnamed_fields};
 
 pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_macro2::TokenStream {
     let mut from_buf_match_tokens = Vec::new();
@@ -64,7 +66,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
 
     quote! {
         impl serbytes::prelude::SerBytes for #enum_name {
-            fn from_buf(buf: &mut bytebuffer::ByteBuffer) -> std::io::Result<Self> {
+            fn from_buf(buf: &mut serbytes::prelude::ByteBuffer) -> std::io::Result<Self> {
                 let index = u8::from_buf(buf)?;
                 match index {
                     #(#from_buf_match_tokens)*
@@ -74,7 +76,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                 }
             }
 
-            fn to_buf(&self, buf: &mut bytebuffer::ByteBuffer) {
+            fn to_buf(&self, buf: &mut serbytes::prelude::ByteBuffer) {
                 match self {
                     #(#to_buf_match_tokens)*
                 }

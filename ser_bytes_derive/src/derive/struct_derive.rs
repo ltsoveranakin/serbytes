@@ -1,7 +1,9 @@
+use crate::derive::shared::{
+    impl_from_named_fields, impl_from_unnamed_fields, impl_to_named_fields, impl_to_unnamed_fields,
+};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::{DataStruct, Fields};
-use crate::derive::shared::{impl_from_named_fields, impl_from_unnamed_fields, impl_to_named_fields, impl_to_unnamed_fields};
 
 pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) -> TokenStream {
     let DataStruct { fields, .. } = struct_data;
@@ -49,11 +51,11 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
 
     quote! {
         impl serbytes::prelude::SerBytes for #struct_name {
-            fn from_buf(buf: &mut bytebuffer::ByteBuffer) -> std::io::Result<Self> {
+            fn from_buf(buf: &mut serbytes::prelude::ByteBuffer) -> std::io::Result<Self> {
                 #from_body
             }
 
-            fn to_buf(&self, buf: &mut bytebuffer::ByteBuffer) {
+            fn to_buf(&self, buf: &mut serbytes::prelude::ByteBuffer) {
                 #to_body
             }
         }
