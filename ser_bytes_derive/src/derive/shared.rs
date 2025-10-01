@@ -8,7 +8,7 @@ pub(super) fn impl_from_named_fields(named_fields: &FieldsNamed) -> proc_macro2:
     for field in &named_fields.named {
         let Field { ident, .. } = field;
         from_body.push(quote! {
-            #ident: serdata::prelude::from_buf(buf)?
+            #ident: serbytes::prelude::from_buf(buf)?
         });
     }
 
@@ -51,7 +51,7 @@ pub(super) fn impl_from_unnamed_fields(named_fields: &FieldsUnnamed) -> proc_mac
 
     for _ in &named_fields.unnamed {
         from_body.push(quote! {
-            serdata::prelude::from_buf(buf)?
+            serbytes::prelude::from_buf(buf)?
         });
     }
 
