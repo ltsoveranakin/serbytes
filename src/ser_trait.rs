@@ -9,7 +9,7 @@ pub trait SerBytes {
         Self: Sized;
 
     fn to_buf(&self, buf: &mut ByteBuffer);
-
+    
     fn from_bytes(bytes: &[u8]) -> io::Result<Self>
     where
         Self: Sized,
