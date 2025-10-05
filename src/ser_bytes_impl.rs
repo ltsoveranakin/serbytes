@@ -1,13 +1,14 @@
-
 use crate::prelude::SizeHint;
 use crate::ser_bytes_impl_macro::ser_data_impl;
 use crate::ser_trait::SerBytes;
 use bytebuffer::ByteBuffer;
-use std::hash::Hash;
-use std::io;
-use std::sync::Arc;
 use glam::{IVec2, Vec2};
 use hashbrown::{HashMap, HashSet};
+use std::cell::RefCell;
+use std::hash::Hash;
+use std::io;
+use std::rc::Rc;
+use std::sync::Arc;
 
 ser_data_impl!(u8, u8);
 ser_data_impl!(u16, u16);
@@ -217,10 +218,38 @@ where
     S: SerBytes,
 {
     fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
-        Ok(Arc::new(S::from_buf(buf)?))
+        Ok(Self::new(S::from_buf(buf)?))
     }
 
     fn to_buf(&self, buf: &mut ByteBuffer) {
-        (**self).to_buf(buf);
+        S::to_buf(self, buf);
+    }
+}
+
+impl<S> SerBytes for Rc<S>
+where
+    S: SerBytes,
+{
+    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+        Ok(Self::new(S::from_buf(buf)?))
+    }
+
+    fn to_buf(&self, buf: &mut ByteBuffer) {
+        S::to_buf(self, buf);
+    }
+}
+
+impl<S> SerBytes for RefCell<S>
+where
+    S: SerBytes,
+{
+    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+        Ok(Self::new(S::from_buf(buf)?))
+    }
+
+    /// Panics if the [RefCell] value is being mutable borrowed.
+
+    fn to_buf(&self, buf: &mut ByteBuffer) {
+        S::to_buf(&*self.borrow(), buf);
     }
 }
