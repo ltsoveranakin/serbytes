@@ -15,7 +15,13 @@ ser_data_impl!(u16, u16);
 ser_data_impl!(u32, u32);
 ser_data_impl!(u64, u64);
 ser_data_impl!(u128, u128);
+
+ser_data_impl!(i8, i8);
+ser_data_impl!(i16, i16);
 ser_data_impl!(i32, i32);
+ser_data_impl!(i64, i64);
+ser_data_impl!(i128, i128);
+
 ser_data_impl!(f32, f32);
 ser_data_impl!(f64, f64);
 
@@ -47,11 +53,11 @@ impl SerBytes for bool {
         buf.write_bit(*self);
     }
 
-    fn size_hint() -> SizeHint
+    fn size_hint() -> u16
     where
         Self: Sized,
     {
-        SizeHint::bits(0)
+        1
     }
 }
 
@@ -62,6 +68,13 @@ impl SerBytes for String {
 
     fn to_buf(&self, buf: &mut ByteBuffer) {
         buf.write_string(self)
+    }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        u32::size_hint()
     }
 }
 
@@ -88,13 +101,8 @@ impl<S: SerBytes> SerBytes for Option<S> {
         }
     }
 
-    fn size_hint() -> SizeHint {
-        let bool_size = 1;
-
-        SizeHint {
-            min: bool_size,
-            max: bool_size + S::size_hint().max,
-        }
+    fn size_hint() -> u16 {
+        bool::size_hint()
     }
 }
 
@@ -111,11 +119,11 @@ impl SerBytes for IVec2 {
         self.y.to_buf(buf);
     }
 
-    fn size_hint() -> SizeHint
+    fn size_hint() -> u16
     where
         Self: Sized,
     {
-        i32::size_hint() * 2
+        u16::size_hint() * 2
     }
 }
 
@@ -132,11 +140,11 @@ impl SerBytes for Vec2 {
         self.y.to_buf(buf);
     }
 
-    fn size_hint() -> SizeHint
+    fn size_hint() -> u16
     where
         Self: Sized,
     {
-        SizeHint::bytes(f32::size_hint().max + f32::size_hint().max)
+        f32::size_hint()* 2
     }
 }
 
@@ -158,6 +166,13 @@ impl<S: SerBytes> SerBytes for Vec<S> {
         for ser_data in self {
             ser_data.to_buf(buf);
         }
+    }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        u16::size_hint()
     }
 }
 

@@ -81,6 +81,13 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                     #(#to_buf_match_tokens)*
                 }
             }
+
+            fn size_hint() -> u16
+            where
+                Self: Sized
+            {
+                u8::size_hint()
+            }
         }
     }
 }

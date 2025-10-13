@@ -28,13 +28,13 @@ pub trait SerBytes {
         Bytes::from(self.to_bb().into_vec())
     }
 
-    /// The approximate size of the serialized data, not the amount of memory the data takes up during runtime.
-    /// This doesn't need to encapsulate the maximum size of a type. In fact if it does (i.e. with string being isize::max) it will most likely cause oom errors and crash
-
-    fn size_hint() -> SizeHint
-    where
-        Self: Sized,
+    /// The absolute minimum amount of data that the serialized data will take up in bytes
+    /// If it uses less than a byte, should always round up. i.e. 3 bits -> 8 bits (1 byte)
+    fn size_hint() -> u16
+    where Self:Sized
     {
-        SizeHint::bytes(0)
+        0
     }
+
+
 }
