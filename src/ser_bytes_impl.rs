@@ -10,20 +10,20 @@ use std::io;
 use std::rc::Rc;
 use std::sync::Arc;
 
-ser_data_impl!(u8, u8);
-ser_data_impl!(u16, u16);
-ser_data_impl!(u32, u32);
-ser_data_impl!(u64, u64);
-ser_data_impl!(u128, u128);
+ser_data_impl!(u8, u8, 1);
+ser_data_impl!(u16, u16, 2);
+ser_data_impl!(u32, u32, 4);
+ser_data_impl!(u64, u64, 8);
+ser_data_impl!(u128, u128, 16);
 
-ser_data_impl!(i8, i8);
-ser_data_impl!(i16, i16);
-ser_data_impl!(i32, i32);
-ser_data_impl!(i64, i64);
-ser_data_impl!(i128, i128);
+ser_data_impl!(i8, i8, 1);
+ser_data_impl!(i16, i16, 2);
+ser_data_impl!(i32, i32, 4);
+ser_data_impl!(i64, i64, 8);
+ser_data_impl!(i128, i128, 16);
 
-ser_data_impl!(f32, f32);
-ser_data_impl!(f64, f64);
+ser_data_impl!(f32, f32, 4);
+ser_data_impl!(f64, f64, 8);
 
 #[inline]
 pub fn from_buf<S>(buf: &mut ByteBuffer) -> io::Result<S>
@@ -203,6 +203,13 @@ where
             value.to_buf(buf);
         }
     }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        u16::size_hint()
+    }
 }
 
 impl<K> SerBytes for HashSet<K>
@@ -226,6 +233,13 @@ where
             key.to_buf(buf);
         }
     }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        u16::size_hint()
+    }
 }
 
 impl<S> SerBytes for Arc<S>
@@ -239,6 +253,13 @@ where
     fn to_buf(&self, buf: &mut ByteBuffer) {
         S::to_buf(self, buf);
     }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        S::size_hint()
+    }
 }
 
 impl<S> SerBytes for Rc<S>
@@ -251,6 +272,13 @@ where
 
     fn to_buf(&self, buf: &mut ByteBuffer) {
         S::to_buf(self, buf);
+    }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        S::size_hint()
     }
 }
 
@@ -266,5 +294,12 @@ where
 
     fn to_buf(&self, buf: &mut ByteBuffer) {
         S::to_buf(&*self.borrow(), buf);
+    }
+
+    fn size_hint() -> u16
+    where
+        Self: Sized,
+    {
+        S::size_hint()
     }
 }

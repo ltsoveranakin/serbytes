@@ -1,5 +1,5 @@
 macro_rules! ser_data_impl {
-    ($t:ty, $call_signature:ident, byte_size: ident) => {
+    ($t:ty, $call_signature:ident, $byte_size:tt) => {
         impl crate::prelude::SerBytes for $t {
             fn from_buf(buf: &mut bytebuffer::ByteBuffer) -> io::Result<Self> {
                 paste::paste! {
