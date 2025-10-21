@@ -1,25 +1,24 @@
-use crate::size_hint::SizeHint;
-use bytebuffer::ByteBuffer;
+use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
 use bytes::Bytes;
 use std::io;
 
 pub trait SerBytes {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self>
     where
         Self: Sized;
 
-    fn to_buf(&self, buf: &mut ByteBuffer);
-    
+    fn to_buf(&self, buf: &mut WriteByteBuffer);
+
     fn from_bytes(bytes: &[u8]) -> io::Result<Self>
     where
         Self: Sized,
     {
-        let mut buf = ByteBuffer::from_bytes(bytes);
+        let mut buf = ReadByteBuffer::from_bytes(bytes);
         Self::from_buf(&mut buf)
     }
 
-    fn to_bb(&self) -> ByteBuffer {
-        let mut buf = ByteBuffer::new();
+    fn to_bb(&self) -> WriteByteBuffer {
+        let mut buf = WriteByteBuffer::new();
         self.to_buf(&mut buf);
         buf
     }
@@ -31,10 +30,9 @@ pub trait SerBytes {
     /// The absolute minimum amount of data that the serialized data will take up in bytes
     /// If it uses less than a byte, should always round up. i.e. 3 bits -> 8 bits (1 byte)
     fn size_hint() -> u16
-    where Self:Sized
+    where
+        Self: Sized,
     {
         0
     }
-
-
 }
