@@ -1,4 +1,4 @@
-use crate::prelude::SizeHint;
+use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
 use crate::ser_bytes_impl_macro::ser_data_impl;
 use crate::ser_trait::SerBytes;
 use bytebuffer::ByteBuffer;
@@ -26,7 +26,7 @@ ser_data_impl!(f32, f32, 4);
 ser_data_impl!(f64, f64, 8);
 
 #[inline]
-pub fn from_buf<S>(buf: &mut ByteBuffer) -> io::Result<S>
+pub fn from_buf<S>(buf: &mut ReadByteBuffer) -> io::Result<S>
 where
     S: SerBytes,
 {
@@ -34,7 +34,7 @@ where
 }
 
 #[inline]
-pub fn to_buf<S>(s: &S, buf: &mut ByteBuffer)
+pub fn to_buf<S>(s: &S, buf: &mut WriteByteBuffer)
 where
     S: SerBytes,
 {
@@ -42,14 +42,14 @@ where
 }
 
 impl SerBytes for bool {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self>
     where
         Self: Sized,
     {
         buf.read_bit()
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         buf.write_bit(*self);
     }
 
@@ -62,11 +62,11 @@ impl SerBytes for bool {
 }
 
 impl SerBytes for String {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         buf.read_string()
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         buf.write_string(self)
     }
 
@@ -79,7 +79,7 @@ impl SerBytes for String {
 }
 
 impl<S: SerBytes> SerBytes for Option<S> {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self>
     where
         Self: Sized,
     {
@@ -88,7 +88,7 @@ impl<S: SerBytes> SerBytes for Option<S> {
         Ok(if is_some { Some(from_buf(buf)?) } else { None })
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         match self {
             Some(s) => {
                 true.to_buf(buf);
@@ -107,14 +107,14 @@ impl<S: SerBytes> SerBytes for Option<S> {
 }
 
 impl SerBytes for IVec2 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         Ok(Self {
             x: i32::from_buf(buf)?,
             y: i32::from_buf(buf)?,
         })
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         self.x.to_buf(buf);
         self.y.to_buf(buf);
     }
@@ -128,14 +128,14 @@ impl SerBytes for IVec2 {
 }
 
 impl SerBytes for Vec2 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         Ok(Self {
             x: f32::from_buf(buf)?,
             y: f32::from_buf(buf)?,
         })
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         self.x.to_buf(buf);
         self.y.to_buf(buf);
     }
@@ -144,12 +144,12 @@ impl SerBytes for Vec2 {
     where
         Self: Sized,
     {
-        f32::size_hint()* 2
+        f32::size_hint() * 2
     }
 }
 
 impl<S: SerBytes> SerBytes for Vec<S> {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         let vec_len = u16::from_buf(buf)? as usize;
         let mut vec = Vec::with_capacity(vec_len);
 
@@ -160,7 +160,7 @@ impl<S: SerBytes> SerBytes for Vec<S> {
         Ok(vec)
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         (self.len() as u16).to_buf(buf);
 
         for ser_data in self {
@@ -181,7 +181,7 @@ where
     K: SerBytes + Eq + Hash,
     V: SerBytes,
 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         let len = u16::from_buf(buf)? as usize;
         let mut map = Self::with_capacity(len);
 
@@ -195,7 +195,7 @@ where
         Ok(map)
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         (self.len() as u16).to_buf(buf);
 
         for (key, value) in self {
@@ -216,7 +216,7 @@ impl<K> SerBytes for HashSet<K>
 where
     K: SerBytes + Eq + Hash,
 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         let len = u16::from_buf(buf)?;
         let mut set = HashSet::with_capacity(len as usize);
 
@@ -227,7 +227,7 @@ where
         Ok(set)
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         (self.len() as u16).to_buf(buf);
         for key in self.iter() {
             key.to_buf(buf);
@@ -246,11 +246,11 @@ impl<S> SerBytes for Arc<S>
 where
     S: SerBytes,
 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         Ok(Self::new(S::from_buf(buf)?))
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         S::to_buf(self, buf);
     }
 
@@ -266,11 +266,11 @@ impl<S> SerBytes for Rc<S>
 where
     S: SerBytes,
 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         Ok(Self::new(S::from_buf(buf)?))
     }
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         S::to_buf(self, buf);
     }
 
@@ -286,13 +286,13 @@ impl<S> SerBytes for RefCell<S>
 where
     S: SerBytes,
 {
-    fn from_buf(buf: &mut ByteBuffer) -> io::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self> {
         Ok(Self::new(S::from_buf(buf)?))
     }
 
     /// Panics if the [RefCell] value is being mutable borrowed.
 
-    fn to_buf(&self, buf: &mut ByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
         S::to_buf(&*self.borrow(), buf);
     }
 
