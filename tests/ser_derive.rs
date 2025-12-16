@@ -15,9 +15,13 @@ fn test_enum_derive() {
         f4: 67,
     };
 
-    let mut bb = b.to_bb();
+    let wbb = b.to_bb();
 
-    let deserialized = Basic::from_buf(&mut bb).expect("Error deserializing data");
+    println!("{:?}", wbb.buf());
+
+    let mut rbb = wbb.into();
+
+    let deserialized = Basic::from_buf(&mut rbb).expect("Error deserializing data");
 
     assert_eq!(b, deserialized);
 }

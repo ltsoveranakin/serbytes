@@ -1,6 +1,7 @@
 use crate::bytebuffer::write_macro::write_ty;
-use crate::prelude::ReadByteBuffer;
 use byteorder::{BigEndian, ByteOrder};
+use std::io;
+use std::io::ErrorKind;
 
 pub struct WriteByteBuffer {
     buf: Vec<u8>,
@@ -16,21 +17,38 @@ impl WriteByteBuffer {
     }
 
     pub fn write_bit(&mut self, bit: bool) {
-        if self.bit_pos > 7 {
+        if self.bit_pos == 8 {
             self.write_u8(0);
             self.bit_pos = 0;
         }
 
         let len = self.buf.len();
 
-        if bit {
-            self.buf[len - 1] |= 1 << (7 - self.bit_pos);
-        }
+        self.buf[len - 1] |= (bit as u8) << (7 - self.bit_pos);
 
         self.bit_pos += 1;
     }
 
+    pub fn write_remaining_bits(&mut self, bits: u8) -> io::Result<u8> {
+        if self.bit_pos == 8 {
+            return Err(ErrorKind::UnexpectedEof.into());
+        }
+
+        let shifted_left = self.buf.last().unwrap() << self.bit_pos;
+        let bits_shifted = shifted_left & (!0);
+        let bits = bits_shifted >> self.bit_pos;
+
+        self.bit_pos = 8;
+
+        Ok(bits)
+    }
+
+    pub fn write_bytes(&mut self, bytes: &[u8]) {
+        self.buf.extend_from_slice(bytes)
+    }
+
     pub fn write_u8(&mut self, n: u8) {
+        self.bit_pos = 8;
         self.buf.push(n);
     }
 
@@ -51,13 +69,11 @@ impl WriteByteBuffer {
     write_ty!(f32, write_f32, 4);
     write_ty!(f64, write_f64, 8);
 
-    pub(crate) fn into_vec(self) -> Vec<u8> {
+    pub fn into_vec(self) -> Vec<u8> {
         self.buf
     }
-}
 
-impl From<WriteByteBuffer> for ReadByteBuffer {
-    fn from(value: WriteByteBuffer) -> Self {
-        Self::from_bytes(&value.buf)
+    pub fn buf(&self) -> &Vec<u8> {
+        &self.buf
     }
 }

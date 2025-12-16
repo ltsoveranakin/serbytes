@@ -51,11 +51,11 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
 
     quote! {
         impl serbytes::prelude::SerBytes for #struct_name {
-            fn from_buf(buf: &mut serbytes::prelude::ByteBuffer) -> std::io::Result<Self> {
+            fn from_buf(buf: &mut serbytes::prelude::ReadByteBuffer) -> serbytes::prelude::Result<Self> {
                 #from_body
             }
 
-            fn to_buf(&self, buf: &mut serbytes::prelude::ByteBuffer) {
+            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBuffer) {
                 #to_body
             }
         }

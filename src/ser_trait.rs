@@ -1,15 +1,15 @@
+use crate::bytebuffer;
 use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
 use bytes::Bytes;
-use std::io;
 
 pub trait SerBytes {
-    fn from_buf(buf: &mut ReadByteBuffer) -> io::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self>
     where
         Self: Sized;
 
     fn to_buf(&self, buf: &mut WriteByteBuffer);
 
-    fn from_bytes(bytes: &[u8]) -> io::Result<Self>
+    fn from_bytes(bytes: &[u8]) -> bytebuffer::Result<Self>
     where
         Self: Sized,
     {

@@ -5,7 +5,7 @@ macro_rules! write_ty {
             self.bit_pos = 8;
 
             let mut new_slice = [0; $size];
-            BigEndian::$call(&mut new_slice, n);
+            byteorder::BigEndian::$call(&mut new_slice, n);
 
             self.buf.extend(&new_slice);
         }
