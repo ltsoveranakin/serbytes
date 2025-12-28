@@ -1,13 +1,15 @@
 macro_rules! ser_data_impl {
-    ($t:ty, $call_signature:ident, $byte_size:tt) => {
+    ($t:ty, $call_signature:ident, $byte_size:literal) => {
         impl crate::prelude::SerBytes for $t {
-            fn from_buf(buf: &mut bytebuffer::ByteBuffer) -> io::Result<Self> {
+            fn from_buf(
+                buf: &mut crate::bytebuffer::ReadByteBuffer,
+            ) -> crate::bytebuffer::BBReadResult<Self> {
                 paste::paste! {
                     buf.[<read_ $call_signature>]()
                 }
             }
 
-            fn to_buf(&self, buf: &mut bytebuffer::ByteBuffer) {
+            fn to_buf(&self, buf: &mut crate::bytebuffer::WriteByteBuffer) {
                 paste::paste! {
                     buf.[<write_ $call_signature>](*self)
                 }
