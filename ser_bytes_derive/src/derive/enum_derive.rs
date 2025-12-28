@@ -66,12 +66,12 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
 
     quote! {
         impl serbytes::prelude::SerBytes for #enum_name {
-            fn from_buf(buf: &mut serbytes::prelude::ReadByteBuffer) -> serbytes::prelude::Result<Self> {
+            fn from_buf(buf: &mut serbytes::prelude::ReadByteBuffer) -> serbytes::prelude::BBReadResult<Self> {
                 let index = u8::from_buf(buf)?;
                 match index {
                     #(#from_buf_match_tokens)*
                     _ => {
-                        Err(std::io::Error::from(std::io::ErrorKind::InvalidData))
+                        Err(ReadError::new(format!("Error reading: enum index, invalid index read; got: {}", index)))
                     }
                 }
             }

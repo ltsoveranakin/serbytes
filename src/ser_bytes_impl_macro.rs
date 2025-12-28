@@ -3,7 +3,7 @@ macro_rules! ser_data_impl {
         impl crate::prelude::SerBytes for $t {
             fn from_buf(
                 buf: &mut crate::bytebuffer::ReadByteBuffer,
-            ) -> crate::bytebuffer::Result<Self> {
+            ) -> crate::bytebuffer::BBReadResult<Self> {
                 paste::paste! {
                     buf.[<read_ $call_signature>]()
                 }

@@ -3,13 +3,13 @@ use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
 use bytes::Bytes;
 
 pub trait SerBytes {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized;
 
     fn to_buf(&self, buf: &mut WriteByteBuffer);
 
-    fn from_bytes(bytes: &[u8]) -> bytebuffer::Result<Self>
+    fn from_bytes(bytes: &[u8]) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized,
     {

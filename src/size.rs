@@ -1,4 +1,4 @@
-struct Size(usize);
+// struct Size(usize);
 
 // impl SerBytes for Size {
 //     fn from_buf(buf: &mut ReadByteBuffer) -> std::io::Result<Self>

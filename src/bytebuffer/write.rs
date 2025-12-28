@@ -1,5 +1,5 @@
 use crate::bytebuffer::write_macro::write_ty;
-use byteorder::{BigEndian, ByteOrder};
+use byteorder::ByteOrder;
 use std::io;
 use std::io::ErrorKind;
 
@@ -29,18 +29,27 @@ impl WriteByteBuffer {
         self.bit_pos += 1;
     }
 
-    pub fn write_remaining_bits(&mut self, bits: u8) -> io::Result<u8> {
+    /// Writes the remaining bits to the buffer
+    /// If there are 4 bits remaining and 8 bits are supplied,
+
+    pub fn write_remaining_bits(&mut self, bits: u8) -> io::Result<()> {
         if self.bit_pos == 8 {
             return Err(ErrorKind::UnexpectedEof.into());
         }
 
-        let shifted_left = self.buf.last().unwrap() << self.bit_pos;
-        let bits_shifted = shifted_left & (!0);
-        let bits = bits_shifted >> self.bit_pos;
+        let last_bits = self
+            .buf
+            .last_mut()
+            .ok_or_else(|| io::Error::from(ErrorKind::UnexpectedEof))?;
+
+        let bits_masked = bits & (0xFF >> self.bit_pos);
+        let bits = *last_bits | bits_masked;
+
+        *last_bits = bits;
 
         self.bit_pos = 8;
 
-        Ok(bits)
+        Ok(())
     }
 
     pub fn write_bytes(&mut self, bytes: &[u8]) {

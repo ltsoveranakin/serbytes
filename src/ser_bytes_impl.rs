@@ -25,7 +25,7 @@ ser_data_impl!(f32, f32, 4);
 ser_data_impl!(f64, f64, 8);
 
 #[inline]
-pub fn from_buf<S>(buf: &mut ReadByteBuffer) -> bytebuffer::Result<S>
+pub fn from_buf<S>(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<S>
 where
     S: SerBytes,
 {
@@ -41,11 +41,11 @@ where
 }
 
 impl SerBytes for bool {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized,
     {
-        Ok(buf.read_bit()? == 1)
+        Ok(buf.read_bit()?)
     }
 
     fn to_buf(&self, buf: &mut WriteByteBuffer) {
@@ -61,14 +61,13 @@ impl SerBytes for bool {
 }
 
 impl SerBytes for String {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         let len = buf.read_u16()?;
         let bytes =
-            buf.read_bytes_err_msg(len as usize, format!("bytes for string; {} bytes", len))?;
+            buf.read_bytes_with_err_msg(len as usize, format!("bytes for string; {} bytes", len))?;
 
-        String::from_utf8(bytes.to_vec()).map_err(|_| ReadError {
-            message: "invalid utf8 for string".into(),
-        })
+        String::from_utf8(bytes.to_vec())
+            .map_err(|_| ReadError::new("invalid utf8 for string".into()))
     }
 
     fn to_buf(&self, buf: &mut WriteByteBuffer) {
@@ -85,7 +84,7 @@ impl SerBytes for String {
 }
 
 impl<S: SerBytes> SerBytes for Option<S> {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self>
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized,
     {
@@ -113,7 +112,7 @@ impl<S: SerBytes> SerBytes for Option<S> {
 }
 
 impl SerBytes for IVec2 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         Ok(Self {
             x: from_buf(buf)?,
             y: from_buf(buf)?,
@@ -134,7 +133,7 @@ impl SerBytes for IVec2 {
 }
 
 impl SerBytes for Vec2 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         Ok(Self {
             x: from_buf(buf)?,
             y: from_buf(buf)?,
@@ -155,7 +154,7 @@ impl SerBytes for Vec2 {
 }
 
 impl<S: SerBytes> SerBytes for Vec<S> {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         let vec_len = u16::from_buf(buf)? as usize;
         let mut vec = Vec::with_capacity(vec_len);
 
@@ -187,7 +186,7 @@ where
     K: SerBytes + Eq + Hash,
     V: SerBytes,
 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         let len = u16::from_buf(buf)? as usize;
         let mut map = Self::with_capacity(len);
 
@@ -222,7 +221,7 @@ impl<K> SerBytes for HashSet<K>
 where
     K: SerBytes + Eq + Hash,
 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         let len = u16::from_buf(buf)?;
         let mut set = HashSet::with_capacity(len as usize);
 
@@ -252,7 +251,7 @@ impl<S> SerBytes for Arc<S>
 where
     S: SerBytes,
 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         Ok(Self::new(from_buf(buf)?))
     }
 
@@ -272,7 +271,7 @@ impl<S> SerBytes for Rc<S>
 where
     S: SerBytes,
 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         Ok(Self::new(S::from_buf(buf)?))
     }
 
@@ -292,7 +291,7 @@ impl<S> SerBytes for RefCell<S>
 where
     S: SerBytes,
 {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::Result<Self> {
+    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
         Ok(Self::new(S::from_buf(buf)?))
     }
 

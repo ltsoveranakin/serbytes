@@ -2,10 +2,10 @@ mod enum_derive;
 mod shared;
 mod struct_derive;
 
-use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput};
 use crate::derive::enum_derive::impl_derive_enum;
 use crate::derive::struct_derive::impl_derive_struct;
+use quote::quote;
+use syn::{parse_macro_input, Data, DeriveInput};
 
 pub fn ser_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
@@ -15,7 +15,7 @@ pub fn ser_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Data::Struct(struct_data) => impl_derive_struct(struct_data, derive_input.ident),
         Data::Union(_) => {
             quote! {
-                compile_error!("Unions not currently supported");
+                compile_error!("Unions not supported");
             }
         }
     };
