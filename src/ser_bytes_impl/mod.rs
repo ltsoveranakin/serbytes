@@ -5,7 +5,6 @@ use crate::ser_bytes_impl_macro::ser_data_impl;
 use crate::ser_trait::SerBytes;
 use glam::{IVec2, Vec2};
 use std::cell::RefCell;
-use std::hash::Hash;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use std::sync::Arc;
