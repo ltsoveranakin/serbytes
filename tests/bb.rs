@@ -18,38 +18,38 @@ fn test_individual_bits() {
 
     let b1c = true;
 
-    wbb.write_bit(b1);
-    wbb.write_bit(b2);
-    wbb.write_bit(b3);
-    wbb.write_bit(b4);
-    wbb.write_bit(b5);
-    wbb.write_bit(b6);
-    wbb.write_bit(b7);
-    wbb.write_bit(b8);
-    wbb.write_bit(b1b);
+    wbb.write_bool(b1);
+    wbb.write_bool(b2);
+    wbb.write_bool(b3);
+    wbb.write_bool(b4);
+    wbb.write_bool(b5);
+    wbb.write_bool(b6);
+    wbb.write_bool(b7);
+    wbb.write_bool(b8);
+    wbb.write_bool(b1b);
 
     wbb.write_u8(byte);
 
-    wbb.write_bit(b1c);
+    wbb.write_bool(b1c);
 
     let v = wbb.into_vec();
 
     let mut rbb = ReadByteBuffer::from_vec(v);
 
-    assert_eq!(rbb.read_bit().expect("Bit 1 to exist"), b1);
-    assert_eq!(rbb.read_bit().expect("Bit 2 to exist"), b2);
-    assert_eq!(rbb.read_bit().expect("Bit 3 to exist"), b3);
-    assert_eq!(rbb.read_bit().expect("Bit 4 to exist"), b4);
-    assert_eq!(rbb.read_bit().expect("Bit 5 to exist"), b5);
-    assert_eq!(rbb.read_bit().expect("Bit 6 to exist"), b6);
-    assert_eq!(rbb.read_bit().expect("Bit 7 to exist"), b7);
-    assert_eq!(rbb.read_bit().expect("Bit 8 to exist"), b8);
-    assert_eq!(rbb.read_bit().expect("Bit 1 post bits to exist"), b1b);
+    assert_eq!(rbb.read_bool().expect("Bit 1 to exist"), b1);
+    assert_eq!(rbb.read_bool().expect("Bit 2 to exist"), b2);
+    assert_eq!(rbb.read_bool().expect("Bit 3 to exist"), b3);
+    assert_eq!(rbb.read_bool().expect("Bit 4 to exist"), b4);
+    assert_eq!(rbb.read_bool().expect("Bit 5 to exist"), b5);
+    assert_eq!(rbb.read_bool().expect("Bit 6 to exist"), b6);
+    assert_eq!(rbb.read_bool().expect("Bit 7 to exist"), b7);
+    assert_eq!(rbb.read_bool().expect("Bit 8 to exist"), b8);
+    assert_eq!(rbb.read_bool().expect("Bit 1 post bits to exist"), b1b);
 
     assert_eq!(rbb.read_u8().expect("Byte to exist"), byte);
 
     assert_eq!(
-        rbb.read_bit()
+        rbb.read_bool()
             .expect("Bit 1 post whole byte write to exist"),
         b1c
     );
@@ -67,11 +67,11 @@ fn test_rem_bits() {
 
     let rem = 6;
 
-    wbb.write_bit(b1);
-    wbb.write_bit(b2);
-    wbb.write_bit(b3);
-    wbb.write_bit(b4);
-    wbb.write_bit(b5);
+    wbb.write_bool(b1);
+    wbb.write_bool(b2);
+    wbb.write_bool(b3);
+    wbb.write_bool(b4);
+    wbb.write_bool(b5);
     wbb.write_remaining_bits(rem)
         .expect("Bits remaining to write to");
 
@@ -79,13 +79,29 @@ fn test_rem_bits() {
 
     let mut rbb = ReadByteBuffer::from_vec(v);
 
-    assert_eq!(rbb.read_bit().expect("Bit 1 to exist"), b1);
-    assert_eq!(rbb.read_bit().expect("Bit 2 to exist"), b2);
-    assert_eq!(rbb.read_bit().expect("Bit 3 to exist"), b3);
-    assert_eq!(rbb.read_bit().expect("Bit 4 to exist"), b4);
-    assert_eq!(rbb.read_bit().expect("Bit 5 to exist"), b5);
+    assert_eq!(rbb.read_bool().expect("Bit 1 to exist"), b1);
+    assert_eq!(rbb.read_bool().expect("Bit 2 to exist"), b2);
+    assert_eq!(rbb.read_bool().expect("Bit 3 to exist"), b3);
+    assert_eq!(rbb.read_bool().expect("Bit 4 to exist"), b4);
+    assert_eq!(rbb.read_bool().expect("Bit 5 to exist"), b5);
     assert_eq!(
         rbb.read_remaining_bits().expect("Remaining bits to exist"),
         rem
+    );
+}
+
+#[test]
+fn test_write_bits() {
+    let mut wbb = WriteByteBuffer::new();
+
+    let bits = 110;
+
+    wbb.write_bits(bits, 7);
+
+    let mut rbb = ReadByteBuffer::from_vec(wbb.into_vec());
+
+    assert_eq!(
+        rbb.read_bits(7).expect("7 Bits to be able to be read"),
+        bits
     );
 }

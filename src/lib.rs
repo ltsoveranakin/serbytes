@@ -4,4 +4,3 @@ mod ser_bytes_impl;
 mod ser_bytes_impl_macro;
 mod ser_trait;
 mod size;
-mod size_hint;

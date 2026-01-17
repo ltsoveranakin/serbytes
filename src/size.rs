@@ -1,35 +1,44 @@
-// struct Size(usize);
+use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
+use crate::prelude::{BBReadResult, SerBytes};
+use crate::ser_bytes_impl::from_buf;
 
-// impl SerBytes for Size {
-//     fn from_buf(buf: &mut ReadByteBuffer) -> std::io::Result<Self>
-//     where
-//         Self: Sized,
-//     {
-//         let first_byte = u8::from_buf(buf)?;
-//
-//         if (first_byte >> 7) & 1 == 1 {
-//             let first_bit_trimmed = first_byte << 1;
-//             let byte_first_trimmed = first_bit_trimmed >> 1;
-//             Ok(Size(byte_first_trimmed as usize))
-//         } else {
-//             let leading_ones = first_byte.leading_ones();
-//
-//         }
-//
-//         // let takes_more_than_7_bits = from_buf::<bool>(buf)?;
-//         //
-//         // let size =
-//         //
-//         // if takes_more_than_7_bits {
-//         //
-//         // } else {
-//         //     let bits = buf.read_remaining_bits()?;
-//         //
-//         //     bits
-//         // };
-//     }
-//
-//     fn to_buf(&self, buf: &mut WriteByteBuffer) {
-//         todo!()
-//     }
-// }
+pub struct Size(usize);
+
+impl SerBytes for Size {
+    fn from_buf(buf: &mut ReadByteBuffer) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        buf.flush_bits();
+        let is_larger_than_7_bits = from_buf::<bool>(buf)?;
+
+        let size_usize = if is_larger_than_7_bits {
+            let bytes_needed = buf.read_remaining_bits()?;
+            let bytes = buf.read_bytes(bytes_needed as usize)?;
+            let mut u128_bytes = [0; 16];
+
+            u128_bytes[(16 - bytes.len())..].copy_from_slice(&bytes);
+
+            let size_u128 = u128::from_be_bytes(u128_bytes);
+
+            size_u128 as usize
+        } else {
+            buf.read_remaining_bits()? as usize
+        };
+
+        Ok(Size(size_usize))
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBuffer) {
+        let size_usize = self.0;
+
+        if size_usize > 0b01111111 {
+            true.to_buf(buf);
+        } else {
+            false.to_buf(buf);
+
+            buf.write_remaining_bits(size_usize as u8)
+                .expect("Should not fail as long as everything is aligned");
+        }
+    }
+}

@@ -29,10 +29,14 @@ pub trait SerBytes {
 
     /// The absolute minimum amount of data that the serialized data will take up in bytes
     /// If it uses less than a byte, should always round up. i.e. 3 bits -> 8 bits (1 byte)
-    fn size_hint() -> u16
+    fn size_hint() -> usize
     where
         Self: Sized,
     {
+        0
+    }
+
+    fn approx_size(&self) -> usize {
         0
     }
 }

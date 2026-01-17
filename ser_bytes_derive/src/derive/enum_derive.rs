@@ -71,7 +71,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                 match index {
                     #(#from_buf_match_tokens)*
                     _ => {
-                        Err(ReadError::new(format!("Error reading: enum index, invalid index read; got: {}", index)))
+                        Err(serbytes::prelude::ReadError::new(format!("Error reading: enum index, invalid index read; got: {}", index)))
                     }
                 }
             }
@@ -82,7 +82,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                 }
             }
 
-            fn size_hint() -> u16
+            fn size_hint() -> usize
             where
                 Self: Sized
             {

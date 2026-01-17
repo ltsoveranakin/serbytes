@@ -16,7 +16,7 @@ impl WriteByteBuffer {
         }
     }
 
-    pub fn write_bit(&mut self, bit: bool) {
+    pub fn write_bit(&mut self, bit: u8) {
         if self.bit_pos == 8 {
             self.write_u8(0);
             self.bit_pos = 0;
@@ -24,13 +24,20 @@ impl WriteByteBuffer {
 
         let len = self.buf.len();
 
-        self.buf[len - 1] |= (bit as u8) << (7 - self.bit_pos);
+        self.buf[len - 1] |= bit << (7 - self.bit_pos);
 
         self.bit_pos += 1;
     }
 
-    /// Writes the remaining bits to the buffer
-    /// If there are 4 bits remaining and 8 bits are supplied,
+    pub fn write_bits(&mut self, bits: u8, count: usize) {
+        let mask = 1;
+
+        for i in 0..count {
+            let shifted_right = bits >> count - i;
+            let bit = shifted_right & mask;
+            self.write_bit(bit);
+        }
+    }
 
     pub fn write_remaining_bits(&mut self, bits: u8) -> io::Result<()> {
         if self.bit_pos == 8 {
@@ -50,6 +57,10 @@ impl WriteByteBuffer {
         self.bit_pos = 8;
 
         Ok(())
+    }
+
+    pub fn write_bool(&mut self, b: bool) {
+        self.write_bit(b as u8);
     }
 
     pub fn write_bytes(&mut self, bytes: &[u8]) {
@@ -85,4 +96,6 @@ impl WriteByteBuffer {
     pub fn buf(&self) -> &Vec<u8> {
         &self.buf
     }
+
+    // pub fn flush_bits
 }

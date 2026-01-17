@@ -10,7 +10,7 @@ pub struct ReadError {
 }
 
 impl ReadError {
-    pub(crate) fn new(message: String) -> Self {
+    pub fn new(message: String) -> Self {
         Self { message }
     }
 }
@@ -46,30 +46,69 @@ impl ReadByteBuffer {
         self.buf.len() - self.index >= remaining
     }
 
-    pub fn read_bit(&mut self) -> BBReadResult<bool> {
+    pub fn read_bit(&mut self) -> BBReadResult<u8> {
         let bit = self.buf[self.index] >> (7 - self.bit_index) & 1;
 
         self.bit_index += 1;
 
         if self.bit_index == 8 {
-            self.flush_bit_index();
+            self.flush_bits();
         }
 
-        Ok(bit == 1)
+        Ok(bit)
     }
 
+    pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
+        let mut bits = 0;
+
+        for i in 0..count {
+            let bit = self.read_bit()?;
+            let shifted = bit << (count - i);
+
+            bits |= shifted;
+        }
+
+        Ok(bits)
+    }
+
+    // pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
+    //     let final_bit_index = self.bit_index + count - 1;
+    //     if final_bit_index > 7 {
+    //         return Err(ReadError::new(format!(
+    //             "read bits; count: {}; bit_index: {}",
+    //             count, self.bit_index
+    //         )));
+    //     }
+    //
+    //     let read_bits = self.buf[self.index];
+    //     let bits_shifted_l = read_bits << self.bit_index;
+    //     let bits = bits_shifted_l >> ((7 - final_bit_index) + self.bit_index);
+    //
+    //     self.bit_index = final_bit_index + 1;
+    //
+    //     if self.bit_index == 8 {
+    //         self.flush_bit_index();
+    //     }
+    //
+    //     Ok(bits)
+    // }
+
     pub fn read_remaining_bits(&mut self) -> BBReadResult<u8> {
-        if self.bit_index > 7 {
+        if self.bit_index == 8 {
             return Err(ReadError::new("remaining bits".into()));
         }
 
-        let shifted_left = self.buf[self.index] << self.bit_index;
-        let bits_shifted = shifted_left & 0xFF;
-        let bits = bits_shifted >> self.bit_index;
+        let mask = 0xFF >> self.bit_index;
+        let read_bits = self.buf[self.index];
+        let bits = read_bits & mask;
 
-        self.flush_bit_index();
+        self.flush_bits();
 
         Ok(bits)
+    }
+
+    pub fn read_bool(&mut self) -> BBReadResult<bool> {
+        Ok(self.read_bit()? == 1)
     }
 
     pub(crate) fn read_bytes_with_err_msg(
@@ -80,8 +119,8 @@ impl ReadByteBuffer {
         if !self.has_bytes_remaining(size) {
             Err(ReadError::new(format!("Error reading: {}", message)))
         } else {
+            self.flush_bits();
             let index = self.index;
-            self.flush_bit_index();
 
             self.index += size;
 
@@ -95,7 +134,7 @@ impl ReadByteBuffer {
     }
 
     pub fn read_u8(&mut self) -> BBReadResult<u8> {
-        self.flush_bit_index();
+        self.flush_bits();
         let byte = *self.buf.get(self.index).ok_or_else(|| ReadError {
             message: "u8".into(),
         })?;
@@ -126,7 +165,7 @@ impl ReadByteBuffer {
         self.buf
     }
 
-    fn flush_bit_index(&mut self) {
+    pub fn flush_bits(&mut self) {
         if self.bit_index != 0 {
             self.index += 1;
         }
