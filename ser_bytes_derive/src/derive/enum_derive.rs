@@ -70,6 +70,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                 let index = u8::from_buf(buf)?;
                 match index {
                     #(#from_buf_match_tokens)*
+
                     _ => {
                         Err(serbytes::prelude::ReadError::new(format!("Error reading: enum index, invalid index read; got: {}", index)))
                     }

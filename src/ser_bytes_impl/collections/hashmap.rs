@@ -39,6 +39,10 @@ where
     {
         u16::size_hint()
     }
+
+    fn approx_size(&self) -> usize {
+        u16::size_hint() + ((K::size_hint() + V::size_hint()) * self.len())
+    }
 }
 
 impl<K> SerBytes for HashSet<K>
@@ -68,5 +72,9 @@ where
         Self: Sized,
     {
         u16::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        u16::size_hint() + (K::size_hint() * self.len())
     }
 }

@@ -10,8 +10,12 @@ pub struct WriteByteBuffer {
 
 impl WriteByteBuffer {
     pub fn new() -> Self {
+        Self::with_capacity(0)
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            buf: vec![],
+            buf: Vec::with_capacity(capacity),
             bit_pos: 8,
         }
     }

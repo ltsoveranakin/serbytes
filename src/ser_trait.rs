@@ -9,16 +9,23 @@ pub trait SerBytes {
 
     fn to_buf(&self, buf: &mut WriteByteBuffer);
 
+    fn from_vec(vec: Vec<u8>) -> bytebuffer::BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        let mut buf = ReadByteBuffer::from_vec(vec);
+        Self::from_buf(&mut buf)
+    }
+
     fn from_bytes(bytes: &[u8]) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized,
     {
-        let mut buf = ReadByteBuffer::from_bytes(bytes);
-        Self::from_buf(&mut buf)
+        Self::from_vec(bytes.to_vec())
     }
 
     fn to_bb(&self) -> WriteByteBuffer {
-        let mut buf = WriteByteBuffer::new();
+        let mut buf = WriteByteBuffer::with_capacity(self.approx_size());
         self.to_buf(&mut buf);
         buf
     }

@@ -29,6 +29,10 @@ impl<S: SerBytes> SerBytes for Vec<S> {
     {
         u16::size_hint()
     }
+
+    fn approx_size(&self) -> usize {
+        u16::size_hint() + (S::size_hint() * self.len())
+    }
 }
 
 impl SerBytes for String {
@@ -50,5 +54,9 @@ impl SerBytes for String {
         Self: Sized,
     {
         u16::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        u16::size_hint() + self.len()
     }
 }
