@@ -1,3 +1,4 @@
+mod byte_tag;
 mod bytebuffer;
 pub mod prelude;
 mod ser_bytes_impl;
