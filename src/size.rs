@@ -2,8 +2,8 @@ use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
 use crate::prelude::{BBReadResult, SerBytes};
 use crate::ser_bytes_impl::from_buf;
 
-/// WIP
-struct Size(usize);
+/// Work in progress type
+pub struct Size(usize);
 
 impl SerBytes for Size {
     fn from_buf(buf: &mut ReadByteBuffer) -> BBReadResult<Self>
@@ -16,13 +16,13 @@ impl SerBytes for Size {
         let size_usize = if is_larger_than_7_bits {
             let bytes_needed = buf.read_remaining_bits()?;
             let bytes = buf.read_bytes(bytes_needed as usize)?;
-            let mut u128_bytes = [0; 16];
+            let mut u64_bytes = [0; 8];
 
-            u128_bytes[(16 - bytes.len())..].copy_from_slice(&bytes);
+            u64_bytes[(8 - bytes.len())..].copy_from_slice(&bytes);
 
-            let size_u128 = u128::from_be_bytes(u128_bytes);
+            let size_u64 = u64::from_be_bytes(u64_bytes);
 
-            size_u128 as usize
+            size_u64 as usize
         } else {
             buf.read_remaining_bits()? as usize
         };

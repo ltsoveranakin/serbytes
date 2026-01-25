@@ -1,3 +1,4 @@
+use crate::derive::shared::named_fields::ToBufTokens;
 use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::FieldsUnnamed;
@@ -18,9 +19,7 @@ pub(crate) fn impl_from_unnamed_fields(unnamed_fields: &FieldsUnnamed) -> proc_m
     from
 }
 
-pub(crate) fn impl_to_unnamed_fields(
-    unnamed_fields: &FieldsUnnamed,
-) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+pub(crate) fn impl_to_unnamed_fields(unnamed_fields: &FieldsUnnamed) -> ToBufTokens {
     let mut to_destructure_body = Vec::new();
     let mut to_body = Vec::new();
 
@@ -39,15 +38,15 @@ pub(crate) fn impl_to_unnamed_fields(
         i += 1;
     }
 
-    let destructure_body = quote! {
+    let destructure = quote! {
         #(#to_destructure_body),*
     };
 
-    let to = quote! {
+    let body = quote! {
         #(#to_body)*
     };
 
-    (destructure_body, to)
+    ToBufTokens { destructure, body }
 }
 
 pub(crate) fn impl_approx_size_unnamed_fields(

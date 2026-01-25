@@ -1,9 +1,10 @@
 use crate::derive::shared::named_fields::{
-    impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields,
+    impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields, ToBufTokens,
 };
 use crate::derive::shared::unnamed_fields::{
     impl_approx_size_unnamed_fields, impl_from_unnamed_fields, impl_to_unnamed_fields,
 };
+use crate::derive::shared::FunctionBodies;
 use proc_macro2::Ident;
 use quote::quote;
 use syn::{DataEnum, Fields, Variant};
@@ -17,14 +18,17 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
         let index = index as u8;
         let Variant { fields, ident, .. } = variant;
 
-        let (from, to, approx_size_body) = match fields {
+        let FunctionBodies {
+            from_function_body,
+            to_function_body,
+            approx_size_function_body,
+        } = match fields {
             Fields::Named(named_fields) => {
                 let from_fields_body = impl_from_named_fields(named_fields);
-                let (to_fields_destructure, to_fields_body) = impl_to_named_fields(named_fields);
-                let (approx_size_destructure, approx_size_body) =
-                    impl_approx_size_named_fields(named_fields);
+                let ToBufTokens { destructure, body } = impl_to_named_fields(named_fields);
+                let approx_size_body = impl_approx_size_named_fields(named_fields);
 
-                let from = quote! {
+                let from_function_body = quote! {
                     #index => {
                         Ok(Self::#ident {
                             #from_fields_body
@@ -32,31 +36,35 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                     }
                 };
 
-                let to = quote! {
+                let to_function_body = quote! {
                     Self::#ident {
-                        #to_fields_destructure
+                        #destructure
                     } => {
                         #index.to_buf(buf);
-                        #to_fields_body
+                        #body
                     }
                 };
 
-                let approx_size = quote! {
+                let approx_size_function_body = quote! {
                     Self::#ident {
-                        #approx_size_destructure
+                        #destructure
                     } => {
                         #index.approx_size() + #approx_size_body
                     }
                 };
 
-                (from, to, approx_size)
+                FunctionBodies {
+                    from_function_body,
+                    to_function_body,
+                    approx_size_function_body,
+                }
             }
             Fields::Unnamed(unnamed_fields) => {
                 let from_body = impl_from_unnamed_fields(unnamed_fields);
-                let (destructure_body, to_body) = impl_to_unnamed_fields(unnamed_fields);
+                let ToBufTokens { destructure, body } = impl_to_unnamed_fields(unnamed_fields);
                 let approx_size_body = impl_approx_size_unnamed_fields(unnamed_fields);
 
-                let from = quote! {
+                let from_function_body = quote! {
                     #index => {
                         Ok(Self::#ident (
                             #from_body
@@ -64,31 +72,35 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                     }
                 };
 
-                let to = quote! {
+                let to_function_body = quote! {
                     Self::#ident (
-                        #destructure_body
+                        #destructure
                     ) => {
                         #index.to_buf(buf);
-                        #to_body
+                        #body
                     }
                 };
 
-                let approx_size = quote! {
+                let approx_size_function_body = quote! {
                     Self::#ident (
-                        #destructure_body
+                        #destructure
                     ) => {
                         #approx_size_body
                     }
                 };
 
-                (from, to, approx_size)
+                FunctionBodies {
+                    from_function_body,
+                    to_function_body,
+                    approx_size_function_body,
+                }
             }
             Fields::Unit => impl_unit_fields(ident, index),
         };
 
-        from_buf_match_tokens.push(from);
-        to_buf_match_tokens.push(to);
-        approx_size_match_tokens.push(approx_size_body);
+        from_buf_match_tokens.push(from_function_body);
+        to_buf_match_tokens.push(to_function_body);
+        approx_size_match_tokens.push(approx_size_function_body);
     }
 
     quote! {
@@ -126,31 +138,28 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
     }
 }
 
-pub(super) fn impl_unit_fields(
-    variant_name: &Ident,
-    index: u8,
-) -> (
-    proc_macro2::TokenStream,
-    proc_macro2::TokenStream,
-    proc_macro2::TokenStream,
-) {
-    let from = quote! {
+pub(super) fn impl_unit_fields(variant_name: &Ident, index: u8) -> FunctionBodies {
+    let from_function_body = quote! {
         #index => {
             Ok(Self::#variant_name)
         }
     };
 
-    let to = quote! {
+    let to_function_body = quote! {
         Self::#variant_name => {
             #index.to_buf(buf);
         }
     };
 
-    let approx_size = quote! {
+    let approx_size_function_body = quote! {
         Self::#variant_name => {
             0
         }
     };
 
-    (from, to, approx_size)
+    FunctionBodies {
+        from_function_body,
+        to_function_body,
+        approx_size_function_body,
+    }
 }

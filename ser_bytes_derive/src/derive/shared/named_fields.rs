@@ -16,9 +16,12 @@ pub(crate) fn impl_from_named_fields(named_fields: &FieldsNamed) -> proc_macro2:
     }
 }
 
-pub(crate) fn impl_to_named_fields(
-    named_fields: &FieldsNamed,
-) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+pub(crate) struct ToBufTokens {
+    pub(crate) destructure: proc_macro2::TokenStream,
+    pub(crate) body: proc_macro2::TokenStream,
+}
+
+pub(crate) fn impl_to_named_fields(named_fields: &FieldsNamed) -> ToBufTokens {
     let mut to_destructure_body = Vec::new();
     let mut to_body = Vec::new();
 
@@ -42,14 +45,13 @@ pub(crate) fn impl_to_named_fields(
         #(#to_body)*
     };
 
-    (destructure, body)
+    ToBufTokens { destructure, body }
 }
 
 pub(crate) fn impl_approx_size_named_fields(
     named_fields: &FieldsNamed,
-) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+) -> proc_macro2::TokenStream {
     let mut approx_size_body_tokens = Vec::new();
-    let mut approx_size_destructure_body_tokens = Vec::new();
 
     for field in &named_fields.named {
         let Field { ident, .. } = field;
@@ -57,19 +59,11 @@ pub(crate) fn impl_approx_size_named_fields(
         approx_size_body_tokens.push(quote! {
             #ident.approx_size()
         });
-
-        approx_size_destructure_body_tokens.push(quote! {
-            #ident
-        });
     }
 
     let approx_size_body = quote! {
         #(#approx_size_body_tokens)+*
     };
 
-    let approx_size_destructure_body = quote! {
-        #(#approx_size_destructure_body_tokens),*
-    };
-
-    (approx_size_destructure_body, approx_size_body)
+    approx_size_body
 }
