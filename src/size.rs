@@ -2,7 +2,8 @@ use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
 use crate::prelude::{BBReadResult, SerBytes};
 use crate::ser_bytes_impl::from_buf;
 
-pub struct Size(usize);
+/// WIP
+struct Size(usize);
 
 impl SerBytes for Size {
     fn from_buf(buf: &mut ReadByteBuffer) -> BBReadResult<Self>

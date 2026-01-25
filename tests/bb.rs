@@ -105,3 +105,29 @@ fn test_write_bits() {
         bits
     );
 }
+
+#[test]
+fn test_index_pointer() {
+    let mut wbb = WriteByteBuffer::new();
+
+    let test_i32 = 28954;
+    let test_u64 = 8235213245;
+
+    let i32_index_ptr = wbb.write_i32(test_i32);
+    wbb.write_u64(test_u64);
+
+    let new_i32 = 187452;
+
+    wbb.write_at_index_pointer(&i32_index_ptr, new_i32);
+
+    let mut rbb = ReadByteBuffer::from_vec(wbb.into_vec());
+
+    let i32_read_value = rbb.read_i32().expect("Read i32 from buf");
+    let u64_read_value = rbb.read_u64().expect("Read u64 from buf");
+
+    assert_ne!(test_i32, i32_read_value);
+
+    assert_eq!(new_i32, i32_read_value);
+
+    assert_eq!(test_u64, u64_read_value);
+}

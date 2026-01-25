@@ -11,8 +11,19 @@ macro_rules! ser_data_impl {
 
             fn to_buf(&self, buf: &mut crate::bytebuffer::WriteByteBuffer) {
                 paste::paste! {
-                    buf.[<write_ $call_signature>](*self)
+                    buf.[<write_ $call_signature>](*self);
                 }
+            }
+
+            fn size_hint() -> usize
+            where
+                Self: Sized,
+            {
+                $byte_size
+            }
+
+            fn approx_size(&self) -> usize {
+                Self::size_hint()
             }
         }
     };

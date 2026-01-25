@@ -1,7 +1,9 @@
 use crate::bytebuffer::write_macro::write_ty;
+use crate::ser_trait::SerBytes;
 use byteorder::ByteOrder;
 use std::io;
 use std::io::ErrorKind;
+use std::marker::PhantomData;
 
 pub struct WriteByteBuffer {
     buf: Vec<u8>,
@@ -71,13 +73,30 @@ impl WriteByteBuffer {
         self.buf.extend_from_slice(bytes)
     }
 
-    pub fn write_u8(&mut self, n: u8) {
+    pub fn write_u8(&mut self, n: u8) -> IndexPointer<u8> {
         self.bit_pos = 8;
+        let index = self.buf.len();
+
         self.buf.push(n);
+
+        IndexPointer::new(index, 1)
     }
 
-    pub fn write_i8(&mut self, n: i8) {
-        self.write_u8(n as u8);
+    pub fn write_i8(&mut self, n: i8) -> IndexPointer<i8> {
+        self.bit_pos = 8;
+        let index = self.buf.len();
+
+        self.buf.push(n as u8);
+
+        IndexPointer::new(index, 1)
+    }
+
+    pub fn write_at_index_pointer<S: SerBytes>(&mut self, index_pointer: &IndexPointer<S>, val: S) {
+        let mut temp_bb = WriteByteBuffer::new();
+        val.to_buf(&mut temp_bb);
+
+        self.buf[index_pointer.index..(index_pointer.index + index_pointer.len)]
+            .copy_from_slice(temp_bb.buf());
     }
 
     write_ty!(u16, write_u16, 2);
@@ -101,5 +120,29 @@ impl WriteByteBuffer {
         &self.buf
     }
 
+    pub fn len(&self) -> usize {
+        self.buf.len()
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        self.buf.reserve(additional);
+    }
+
     // pub fn flush_bits
+}
+
+pub struct IndexPointer<S> {
+    index: usize,
+    len: usize,
+    _s: PhantomData<S>,
+}
+
+impl<S> IndexPointer<S> {
+    fn new(index: usize, len: usize) -> Self {
+        Self {
+            index,
+            len,
+            _s: PhantomData,
+        }
+    }
 }

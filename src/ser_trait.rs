@@ -43,6 +43,10 @@ pub trait SerBytes {
         0
     }
 
+    /// The approximate size of a type at runtime. Statically sized types when serialized (ie. primitives) should just call Self::size_hint from this function.
+    ///
+    /// Types that can have varying sizes of serialized data (enums, hashmaps, etc.) should do their best to approximate the size as cheaply as possible
+
     fn approx_size(&self) -> usize {
         0
     }
