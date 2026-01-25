@@ -1,27 +1,6 @@
 use crate::bytebuffer::read_macro::read_ty;
-use crate::prelude::WriteByteBuffer;
+use crate::bytebuffer::{BBReadResult, ReadError, WriteByteBuffer};
 use byteorder::ByteOrder;
-use std::io;
-use std::io::ErrorKind;
-
-#[derive(Debug)]
-pub struct ReadError {
-    pub message: String,
-}
-
-impl ReadError {
-    pub fn new(message: String) -> Self {
-        Self { message }
-    }
-}
-
-pub type BBReadResult<T> = Result<T, ReadError>;
-
-impl From<ReadError> for io::Error {
-    fn from(_: ReadError) -> Self {
-        ErrorKind::UnexpectedEof.into()
-    }
-}
 
 pub struct ReadByteBuffer {
     buf: Vec<u8>,
