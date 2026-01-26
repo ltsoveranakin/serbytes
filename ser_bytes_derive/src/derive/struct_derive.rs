@@ -65,6 +65,8 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
                     #body
                 },
                 approx_size_function_body: quote! {
+                     let Self(#destructure) = self;
+
                     #approx_size_body
                 },
             }

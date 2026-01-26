@@ -1,8 +1,6 @@
 pub mod collections;
 
-use crate::bytebuffer::{
-    BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned,
-};
+use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_bytes_impl_macro::ser_data_impl;
 use crate::ser_trait::SerBytes;
 use glam::{IVec2, Vec2};
@@ -208,6 +206,26 @@ where
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         S::to_buf(&*self.borrow(), buf);
+    }
+
+    fn size_hint() -> usize
+    where
+        Self: Sized,
+    {
+        S::size_hint()
+    }
+}
+
+impl<S> SerBytes for Box<S>
+where
+    S: SerBytes,
+{
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
+        Ok(Self::new(S::from_buf(buf)?))
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        S::to_buf(self, buf);
     }
 
     fn size_hint() -> usize
