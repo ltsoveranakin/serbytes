@@ -105,7 +105,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
 
     quote! {
         impl serbytes::prelude::SerBytes for #enum_name {
-            fn from_buf(buf: &mut serbytes::prelude::ReadByteBuffer) -> serbytes::prelude::BBReadResult<Self> {
+            fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
                 let index = u8::from_buf(buf)?;
                 match index {
                     #(#from_buf_match_tokens)*
@@ -116,7 +116,7 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
                 }
             }
 
-            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBuffer) {
+            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
                 match self {
                     #(#to_buf_match_tokens)*
                 }

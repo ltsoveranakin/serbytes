@@ -1,10 +1,12 @@
 use crate::bytebuffer;
-use crate::bytebuffer::{ReadByteBuffer, ReadError, WriteByteBuffer};
+use crate::bytebuffer::{
+    ReadByteBufferRefMut, ReadError, WriteByteBufferOwned,
+};
 use crate::prelude::{from_buf, SerBytes};
 pub mod hashmap;
 
 impl<S: SerBytes> SerBytes for Vec<S> {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
         let vec_len = u16::from_buf(buf)? as usize;
         let mut vec = Vec::with_capacity(vec_len);
 
@@ -15,7 +17,7 @@ impl<S: SerBytes> SerBytes for Vec<S> {
         Ok(vec)
     }
 
-    fn to_buf(&self, buf: &mut WriteByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         (self.len() as u16).to_buf(buf);
 
         for ser_data in self {
@@ -36,7 +38,7 @@ impl<S: SerBytes> SerBytes for Vec<S> {
 }
 
 impl SerBytes for String {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
         let len = u16::from_buf(buf)? as usize;
         let bytes = buf.read_bytes_with_err_msg(len, format!("bytes for string; {} bytes", len))?;
 
@@ -44,7 +46,7 @@ impl SerBytes for String {
             .map_err(|_| ReadError::new("invalid utf8 for string".into()))
     }
 
-    fn to_buf(&self, buf: &mut WriteByteBuffer) {
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         buf.write_u16(self.len() as u16);
         buf.write_bytes(self.as_bytes());
     }

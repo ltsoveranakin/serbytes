@@ -1,18 +1,13 @@
-use crate::bytebuffer::read_macro::read_ty;
-use crate::bytebuffer::{BBReadResult, ReadError, WriteByteBuffer};
-use byteorder::ByteOrder;
+use crate::bytebuffer::read::read_macro::read_owned_ty;
+use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 
-pub struct ReadByteBuffer {
+pub struct ReadByteBufferOwned {
     buf: Vec<u8>,
     index: usize,
     bit_index: usize,
 }
 
-impl ReadByteBuffer {
-    pub fn from_bytes(bytes: &[u8]) -> Self {
-        Self::from_vec(bytes.to_vec())
-    }
-
+impl ReadByteBufferOwned {
     pub fn from_vec(vec: Vec<u8>) -> Self {
         Self {
             buf: vec,
@@ -21,33 +16,36 @@ impl ReadByteBuffer {
         }
     }
 
-    fn has_bytes_remaining(&self, remaining: usize) -> bool {
-        self.buf.len() - self.index >= remaining
+    pub fn rbb_ref_mut(&mut self) -> ReadByteBufferRefMut<'_> {
+        ReadByteBufferRefMut {
+            buf: &self.buf,
+            index: &mut self.index,
+            bit_index: &mut self.bit_index,
+        }
+    }
+
+    fn has_bytes_remaining(&mut self, remaining: usize) -> bool {
+        self.rbb_ref_mut().has_bytes_remaining(remaining)
     }
 
     pub fn read_bit(&mut self) -> BBReadResult<u8> {
-        let bit = self.buf[self.index] >> (7 - self.bit_index) & 1;
-
-        self.bit_index += 1;
-
-        if self.bit_index == 8 {
-            self.flush_bits();
-        }
-
-        Ok(bit)
+        self.rbb_ref_mut().read_bit()
     }
 
     pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
-        let mut bits = 0;
+        self.rbb_ref_mut().read_bits(count)
+    }
 
-        for i in 0..count {
-            let bit = self.read_bit()?;
-            let shifted = bit << (count - i);
+    /// Reads `count` bytes to a vector.
+    /// If you would like to avoid the extra overhead of a vec, use [`ReadByteBufferOwned::rbb_ref_mut`]
+    /// to obtain a [`ReadByteBufferRefMut`], on which you can call [`ReadByteBufferRefMut::read_bytes`]
 
-            bits |= shifted;
-        }
+    pub fn read_bytes_to_vec(&mut self, count: usize) -> BBReadResult<Vec<u8>> {
+        let mut rbb_ref = self.rbb_ref_mut();
+        let bytes =
+            rbb_ref.read_bytes_with_err_msg(count, format!("bytes to vec; len: {}", count))?;
 
-        Ok(bits)
+        Ok(bytes.to_vec())
     }
 
     // pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
@@ -73,72 +71,33 @@ impl ReadByteBuffer {
     // }
 
     pub fn read_remaining_bits(&mut self) -> BBReadResult<u8> {
-        if self.bit_index == 8 {
-            return Err(ReadError::new("remaining bits".into()));
-        }
-
-        let mask = 0xFF >> self.bit_index;
-        let read_bits = self.buf[self.index];
-        let bits = read_bits & mask;
-
-        self.flush_bits();
-
-        Ok(bits)
+        self.rbb_ref_mut().read_remaining_bits()
     }
 
     pub fn read_bool(&mut self) -> BBReadResult<bool> {
-        Ok(self.read_bit()? == 1)
-    }
-
-    pub(crate) fn read_bytes_with_err_msg(
-        &mut self,
-        size: usize,
-        message: String,
-    ) -> BBReadResult<&[u8]> {
-        if !self.has_bytes_remaining(size) {
-            Err(ReadError::new(format!("Error reading: {}", message)))
-        } else {
-            self.flush_bits();
-            let index = self.index;
-
-            self.index += size;
-
-            let slice = &self.buf[index..index + size];
-            Ok(slice)
-        }
-    }
-
-    pub fn read_bytes(&mut self, size: usize) -> BBReadResult<&[u8]> {
-        self.read_bytes_with_err_msg(size, format!("bytes of size {}", size))
+        self.rbb_ref_mut().read_bool()
     }
 
     pub fn read_u8(&mut self) -> BBReadResult<u8> {
-        self.flush_bits();
-        let byte = *self.buf.get(self.index).ok_or_else(|| ReadError {
-            message: "u8".into(),
-        })?;
-
-        self.index += 1;
-
-        Ok(byte)
+        self.rbb_ref_mut().read_u8()
     }
 
     pub fn read_i8(&mut self) -> BBReadResult<i8> {
-        self.read_u8().map(|u| u as i8)
+        self.rbb_ref_mut().read_i8()
     }
 
-    read_ty!(u16, read_u16, 2);
-    read_ty!(u32, read_u32, 4);
-    read_ty!(u64, read_u64, 8);
-    read_ty!(u128, read_u128, 16);
+    read_owned_ty!(u16, read_u16, 2);
+    read_owned_ty!(u32, read_u32, 4);
+    read_owned_ty!(u64, read_u64, 8);
+    read_owned_ty!(u128, read_u128, 16);
 
-    read_ty!(i16, read_i16, 2);
-    read_ty!(i32, read_i32, 4);
-    read_ty!(i64, read_i64, 8);
-    read_ty!(i128, read_i128, 16);
+    read_owned_ty!(i16, read_i16, 2);
+    read_owned_ty!(i32, read_i32, 4);
+    read_owned_ty!(i64, read_i64, 8);
+    read_owned_ty!(i128, read_i128, 16);
 
-    read_ty!(f32, read_f32, 4);
-    read_ty!(f64, read_f64, 8);
+    read_owned_ty!(f32, read_f32, 4);
+    read_owned_ty!(f64, read_f64, 8);
 
     pub fn into_vec(self) -> Vec<u8> {
         self.buf
@@ -152,8 +111,8 @@ impl ReadByteBuffer {
     }
 }
 
-impl From<WriteByteBuffer> for ReadByteBuffer {
-    fn from(value: WriteByteBuffer) -> Self {
+impl From<WriteByteBufferOwned> for ReadByteBufferOwned {
+    fn from(value: WriteByteBufferOwned) -> Self {
         Self::from_vec(value.into_vec())
     }
 }

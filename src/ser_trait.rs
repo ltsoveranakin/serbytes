@@ -1,20 +1,20 @@
 use crate::bytebuffer;
-use crate::bytebuffer::{ReadByteBuffer, WriteByteBuffer};
+use crate::bytebuffer::{ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned};
 use bytes::Bytes;
 
 pub trait SerBytes {
-    fn from_buf(buf: &mut ReadByteBuffer) -> bytebuffer::BBReadResult<Self>
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized;
 
-    fn to_buf(&self, buf: &mut WriteByteBuffer);
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned);
 
     fn from_vec(vec: Vec<u8>) -> bytebuffer::BBReadResult<Self>
     where
         Self: Sized,
     {
-        let mut buf = ReadByteBuffer::from_vec(vec);
-        Self::from_buf(&mut buf)
+        let mut buf = ReadByteBufferOwned::from_vec(vec);
+        Self::from_buf(&mut buf.rbb_ref_mut())
     }
 
     fn from_bytes(bytes: &[u8]) -> bytebuffer::BBReadResult<Self>
@@ -24,8 +24,8 @@ pub trait SerBytes {
         Self::from_vec(bytes.to_vec())
     }
 
-    fn to_bb(&self) -> WriteByteBuffer {
-        let mut buf = WriteByteBuffer::with_capacity(self.approx_size());
+    fn to_bb(&self) -> WriteByteBufferOwned {
+        let mut buf = WriteByteBufferOwned::with_capacity(self.approx_size());
         self.to_buf(&mut buf);
         buf
     }

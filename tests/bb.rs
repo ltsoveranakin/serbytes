@@ -1,8 +1,8 @@
-use serbytes::prelude::{ReadByteBuffer, WriteByteBuffer};
+use serbytes::prelude::{ReadByteBufferOwned, WriteByteBufferOwned};
 
 #[test]
 fn test_individual_bits() {
-    let mut wbb = WriteByteBuffer::new();
+    let mut wbb = WriteByteBufferOwned::new();
 
     let b1 = true;
     let b2 = false;
@@ -34,7 +34,7 @@ fn test_individual_bits() {
 
     let v = wbb.into_vec();
 
-    let mut rbb = ReadByteBuffer::from_vec(v);
+    let mut rbb = ReadByteBufferOwned::from_vec(v);
 
     assert_eq!(rbb.read_bool().expect("Bit 1 to exist"), b1);
     assert_eq!(rbb.read_bool().expect("Bit 2 to exist"), b2);
@@ -57,7 +57,7 @@ fn test_individual_bits() {
 
 #[test]
 fn test_rem_bits() {
-    let mut wbb = WriteByteBuffer::new();
+    let mut wbb = WriteByteBufferOwned::new();
 
     let b1 = true;
     let b2 = false;
@@ -77,7 +77,7 @@ fn test_rem_bits() {
 
     let v = wbb.into_vec();
 
-    let mut rbb = ReadByteBuffer::from_vec(v);
+    let mut rbb = ReadByteBufferOwned::from_vec(v);
 
     assert_eq!(rbb.read_bool().expect("Bit 1 to exist"), b1);
     assert_eq!(rbb.read_bool().expect("Bit 2 to exist"), b2);
@@ -92,13 +92,13 @@ fn test_rem_bits() {
 
 #[test]
 fn test_write_bits() {
-    let mut wbb = WriteByteBuffer::new();
+    let mut wbb = WriteByteBufferOwned::new();
 
     let bits = 110;
 
     wbb.write_bits(bits, 7);
 
-    let mut rbb = ReadByteBuffer::from_vec(wbb.into_vec());
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
 
     assert_eq!(
         rbb.read_bits(7).expect("7 Bits to be able to be read"),
@@ -108,7 +108,7 @@ fn test_write_bits() {
 
 #[test]
 fn test_index_pointer() {
-    let mut wbb = WriteByteBuffer::new();
+    let mut wbb = WriteByteBufferOwned::new();
 
     let test_i32 = 28954;
     let test_u64 = 8235213245;
@@ -120,7 +120,7 @@ fn test_index_pointer() {
 
     wbb.write_at_index_pointer(&i32_index_ptr, new_i32);
 
-    let mut rbb = ReadByteBuffer::from_vec(wbb.into_vec());
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
 
     let i32_read_value = rbb.read_i32().expect("Read i32 from buf");
     let u64_read_value = rbb.read_u64().expect("Read u64 from buf");

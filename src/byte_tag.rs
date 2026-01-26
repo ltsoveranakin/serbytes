@@ -1,11 +1,13 @@
-use crate::bytebuffer::{BBReadResult, IndexPointer, ReadByteBuffer, WriteByteBuffer};
+use crate::bytebuffer::{
+    BBReadResult, IndexPointer, ReadByteBufferRefMut, WriteByteBufferOwned,
+};
 use crate::ser_trait::SerBytes;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
 pub struct WriteSerByteTag<S: SerBytes, V: SerBytes> {
-    wbb: WriteByteBuffer,
+    wbb: WriteByteBufferOwned,
     len: usize,
     len_index_ptr: IndexPointer<u16>,
     _tag_key: PhantomData<S>,
@@ -14,7 +16,7 @@ pub struct WriteSerByteTag<S: SerBytes, V: SerBytes> {
 
 impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
     pub fn new() -> Self {
-        let mut wbb = WriteByteBuffer::with_capacity(u16::size_hint());
+        let mut wbb = WriteByteBufferOwned::with_capacity(u16::size_hint());
 
         let len_index_ptr = wbb.write_u16(0);
 
@@ -40,7 +42,7 @@ impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
             .write_at_index_pointer(&self.len_index_ptr, self.len as u16);
     }
 
-    pub fn get_buf(self) -> WriteByteBuffer {
+    pub fn get_buf(self) -> WriteByteBufferOwned {
         self.wbb
     }
 }
@@ -50,7 +52,7 @@ pub struct ReadSerByteTag<K: SerBytes + Eq + Hash, V: SerBytes> {
 }
 
 impl<K: SerBytes + Eq + Hash, V: SerBytes> ReadSerByteTag<K, V> {
-    pub fn from_buf(mut rbb: ReadByteBuffer) -> BBReadResult<Self> {
+    pub fn from_buf(mut rbb: ReadByteBufferRefMut) -> BBReadResult<Self> {
         let len = u16::from_buf(&mut rbb)?;
 
         let mut tags = HashMap::with_capacity(len as usize);
