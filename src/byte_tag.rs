@@ -1,6 +1,4 @@
-use crate::bytebuffer::{
-    BBReadResult, IndexPointer, ReadByteBufferRefMut, WriteByteBufferOwned,
-};
+use crate::bytebuffer::{BBReadResult, IndexPointer, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -18,7 +16,7 @@ impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
     pub fn new() -> Self {
         let mut wbb = WriteByteBufferOwned::with_capacity(u16::size_hint());
 
-        let len_index_ptr = wbb.write_u16(0);
+        let len_index_ptr = wbb.write_with_index_pointer(&0);
 
         Self {
             wbb,
@@ -39,7 +37,7 @@ impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
         self.len += 1;
 
         self.wbb
-            .write_at_index_pointer(&self.len_index_ptr, self.len as u16);
+            .write_at_index_pointer(&self.len_index_ptr, &(self.len as u16));
     }
 
     pub fn get_buf(self) -> WriteByteBufferOwned {

@@ -51,3 +51,11 @@ pub trait SerBytes {
         0
     }
 }
+
+/// Marker trait that dictates a type will always have the same size when serialized.
+///
+/// Implementing this on types that do have a varying size may cause hard to track bugs.
+///
+/// Should never be implemented on vectors, maps, enums (unless all enum variants have the exact same size)
+
+pub trait SerBytesStaticSized: SerBytes {}

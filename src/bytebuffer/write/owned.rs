@@ -1,6 +1,6 @@
 use crate::bytebuffer::write::write_macro::write_ty;
 use crate::bytebuffer::IndexPointer;
-use crate::prelude::SerBytes;
+use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 use byteorder::ByteOrder;
 use std::io;
 use std::io::ErrorKind;
@@ -73,30 +73,69 @@ impl WriteByteBufferOwned {
         self.buf.extend_from_slice(bytes)
     }
 
-    pub fn write_u8(&mut self, n: u8) -> IndexPointer<u8> {
+    pub fn write_u8(&mut self, n: u8) {
         self.bit_pos = 8;
-        let index = self.buf.len();
 
         self.buf.push(n);
-
-        IndexPointer::new(index, 1)
     }
 
-    pub fn write_i8(&mut self, n: i8) -> IndexPointer<i8> {
+    pub fn write_i8(&mut self, n: i8) {
         self.bit_pos = 8;
-        let index = self.buf.len();
 
         self.buf.push(n as u8);
-
-        IndexPointer::new(index, 1)
     }
 
-    pub fn write_at_index_pointer<S: SerBytes>(&mut self, index_pointer: &IndexPointer<S>, val: S) {
+    /// Write the Ser type to the buffer and returns an [`IndexPointer`] at the location where the type was written.
+
+    /// We don't need to restrict this method to [`SerBytesStaticSized`] because we don't care then length of the content written.
+    /// We only care when trying to write the data back at the [`IndexPointer`]
+    pub fn write_with_index_pointer<S>(&mut self, val: &S) -> IndexPointer<S>
+    where
+        S: SerBytes,
+    {
+        let bb = val.to_bb();
+
+        let index = self.buf().len();
+
+        self.buf.extend_from_slice(&bb.buf);
+
+        IndexPointer::new(index, S::size_hint())
+    }
+
+    /// Writes data at the given [`IndexPointer`], if you need a method that accepts any type which implements [`SerBytes`],
+    /// use the method [`WriteByteBufferOwned::try_write_at_index_pointer`]
+    ///
+    /// This function will not fail so long as all types which implement [`SerBytesStaticSized`] adhere to it's rules
+
+    pub fn write_at_index_pointer<S>(&mut self, index_pointer: &IndexPointer<S>, val: &S)
+    where
+        S: SerBytesStaticSized,
+    {
         let mut temp_bb = WriteByteBufferOwned::new();
         val.to_buf(&mut temp_bb);
 
         self.buf[index_pointer.index..(index_pointer.index + index_pointer.len)]
             .copy_from_slice(temp_bb.buf());
+    }
+
+    pub fn try_write_at_index_pointer<S>(
+        &mut self,
+        index_pointer: &IndexPointer<S>,
+        val: &S,
+    ) -> Result<(), ()>
+    where
+        S: SerBytes,
+    {
+        let mut temp_bb = WriteByteBufferOwned::new();
+        val.to_buf(&mut temp_bb);
+
+        if temp_bb.len() == index_pointer.len {
+            self.buf[index_pointer.index..(index_pointer.index + index_pointer.len)]
+                .copy_from_slice(temp_bb.buf());
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
     write_ty!(u16, write_u16, 2);

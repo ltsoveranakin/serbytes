@@ -1,6 +1,6 @@
 macro_rules! ser_data_impl {
     ($t:ty, $call_signature:ident, $byte_size:literal) => {
-        impl crate::prelude::SerBytes for $t {
+        impl crate::ser_trait::SerBytes for $t {
             fn from_buf(
                 buf: &mut crate::bytebuffer::ReadByteBufferRefMut,
             ) -> crate::bytebuffer::BBReadResult<Self> {
@@ -15,6 +15,7 @@ macro_rules! ser_data_impl {
                 }
             }
 
+            #[inline]
             fn size_hint() -> usize
             where
                 Self: Sized,
@@ -22,10 +23,13 @@ macro_rules! ser_data_impl {
                 $byte_size
             }
 
+            #[inline]
             fn approx_size(&self) -> usize {
-                Self::size_hint()
+                $byte_size
             }
         }
+
+        impl crate::ser_trait::SerBytesStaticSized for $t {}
     };
 }
 

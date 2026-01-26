@@ -1,13 +1,14 @@
 pub mod collections;
+mod deref_types;
 
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_bytes_impl_macro::ser_data_impl;
-use crate::ser_trait::SerBytes;
+use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 use glam::{IVec2, Vec2};
-use std::cell::RefCell;
+
 use std::marker::PhantomData;
-use std::rc::Rc;
-use std::sync::Arc;
+
+ser_data_impl!(bool, bool, 1);
 
 ser_data_impl!(u8, u8, 1);
 ser_data_impl!(u16, u16, 2);
@@ -51,6 +52,8 @@ impl SerBytes for () {
     fn to_buf(&self, _: &mut WriteByteBufferOwned) {}
 }
 
+impl SerBytesStaticSized for () {}
+
 impl<T> SerBytes for PhantomData<T> {
     fn from_buf(_: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
@@ -62,27 +65,7 @@ impl<T> SerBytes for PhantomData<T> {
     fn to_buf(&self, _: &mut WriteByteBufferOwned) {}
 }
 
-impl SerBytes for bool {
-    #[inline]
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
-    where
-        Self: Sized,
-    {
-        buf.read_bool()
-    }
-
-    #[inline]
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        buf.write_bool(*self);
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        1
-    }
-}
+impl<T> SerBytesStaticSized for PhantomData<T> {}
 
 impl<S: SerBytes> SerBytes for Option<S> {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
@@ -112,6 +95,8 @@ impl<S: SerBytes> SerBytes for Option<S> {
     }
 }
 
+impl<S> SerBytesStaticSized for Option<S> where S: SerBytesStaticSized {}
+
 impl SerBytes for IVec2 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
         Ok(Self {
@@ -132,6 +117,8 @@ impl SerBytes for IVec2 {
         u16::size_hint() * 2
     }
 }
+
+impl SerBytesStaticSized for IVec2 {}
 
 impl SerBytes for Vec2 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
@@ -154,84 +141,4 @@ impl SerBytes for Vec2 {
     }
 }
 
-impl<S> SerBytes for Arc<S>
-where
-    S: SerBytes,
-{
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
-        Ok(Self::new(from_buf(buf)?))
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        S::to_buf(self, buf);
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-}
-
-impl<S> SerBytes for Rc<S>
-where
-    S: SerBytes,
-{
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
-        Ok(Self::new(S::from_buf(buf)?))
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        S::to_buf(self, buf);
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-}
-
-impl<S> SerBytes for RefCell<S>
-where
-    S: SerBytes,
-{
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
-        Ok(Self::new(S::from_buf(buf)?))
-    }
-
-    /// Panics if the [RefCell] value is being mutable borrowed.
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        S::to_buf(&*self.borrow(), buf);
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-}
-
-impl<S> SerBytes for Box<S>
-where
-    S: SerBytes,
-{
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
-        Ok(Self::new(S::from_buf(buf)?))
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        S::to_buf(self, buf);
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-}
+impl SerBytesStaticSized for Vec2 {}

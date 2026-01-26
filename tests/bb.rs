@@ -113,12 +113,12 @@ fn test_index_pointer() {
     let test_i32 = 28954;
     let test_u64 = 8235213245;
 
-    let i32_index_ptr = wbb.write_i32(test_i32);
+    let i32_index_ptr = wbb.write_with_index_pointer(&test_i32);
     wbb.write_u64(test_u64);
 
     let new_i32 = 187452;
 
-    wbb.write_at_index_pointer(&i32_index_ptr, new_i32);
+    wbb.write_at_index_pointer(&i32_index_ptr, &new_i32);
 
     let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
 

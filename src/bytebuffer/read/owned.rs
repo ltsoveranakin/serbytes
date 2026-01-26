@@ -24,10 +24,6 @@ impl ReadByteBufferOwned {
         }
     }
 
-    fn has_bytes_remaining(&mut self, remaining: usize) -> bool {
-        self.rbb_ref_mut().has_bytes_remaining(remaining)
-    }
-
     pub fn read_bit(&mut self) -> BBReadResult<u8> {
         self.rbb_ref_mut().read_bit()
     }
