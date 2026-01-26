@@ -118,11 +118,13 @@ impl WriteByteBufferOwned {
             .copy_from_slice(temp_bb.buf());
     }
 
+    /// Returns [`Err`] if the serialized buffer length is not equal to the [`IndexPointer`] length
+
     pub fn try_write_at_index_pointer<S>(
         &mut self,
         index_pointer: &IndexPointer<S>,
         val: &S,
-    ) -> Result<(), ()>
+    ) -> Result<(), usize>
     where
         S: SerBytes,
     {
@@ -134,7 +136,7 @@ impl WriteByteBufferOwned {
                 .copy_from_slice(temp_bb.buf());
             Ok(())
         } else {
-            Err(())
+            Err(temp_bb.len())
         }
     }
 
