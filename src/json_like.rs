@@ -2,7 +2,9 @@ use ser_bytes_derive::SerBytes;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
-mod serbytes;
+mod serbytes {
+    pub use crate::*;
+}
 
 #[derive(SerBytes)]
 pub struct Object(HashMap<String, JsonLikeValue>);
