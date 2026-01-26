@@ -82,11 +82,11 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
 
     quote! {
         impl serbytes::prelude::SerBytes for #struct_name {
-            fn from_buf(buf: &mut serbytes::prelude::ReadByteBuffer) -> serbytes::prelude::BBReadResult<Self> {
+            fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
                 #from_function_body
             }
 
-            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBuffer) {
+            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
                 #to_function_body
             }
 

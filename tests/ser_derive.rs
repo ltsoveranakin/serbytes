@@ -17,9 +17,11 @@ fn test_struct_derive() {
 
     let wbb = b.to_bb();
 
-    let mut rbb = wbb.into();
+    let mut rbb: ReadByteBufferOwned = wbb.into();
 
-    let deserialized = Basic::from_buf(&mut rbb).expect("Error deserializing data");
+    let mut rbb_ref = rbb.rbb_ref_mut();
+
+    let deserialized = Basic::from_buf(&mut rbb_ref).expect("Error deserializing data");
 
     assert_eq!(b, deserialized);
 
@@ -59,17 +61,19 @@ fn test_enum_derive() {
     };
     let b3 = Basic::V3(7482, "hello world".to_string(), 23);
 
-    let mut wbb = WriteByteBuffer::new();
+    let mut wbb = WriteByteBufferOwned::new();
 
     b1.to_buf(&mut wbb);
     b2.to_buf(&mut wbb);
     b3.to_buf(&mut wbb);
 
-    let mut rbb = wbb.into();
+    let mut rbb: ReadByteBufferOwned = wbb.into();
 
-    let b1_deserialized = Basic::from_buf(&mut rbb).expect("Error deserializing b1");
-    let b2_deserialized = Basic::from_buf(&mut rbb).expect("Error deserializing b1");
-    let b3_deserialized = Basic::from_buf(&mut rbb).expect("Error deserializing b1");
+    let mut rbb_ref = rbb.rbb_ref_mut();
+
+    let b1_deserialized = Basic::from_buf(&mut rbb_ref).expect("Error deserializing b1");
+    let b2_deserialized = Basic::from_buf(&mut rbb_ref).expect("Error deserializing b1");
+    let b3_deserialized = Basic::from_buf(&mut rbb_ref).expect("Error deserializing b1");
 
     assert_eq!(b1, b1_deserialized);
     assert_eq!(b2, b2_deserialized);

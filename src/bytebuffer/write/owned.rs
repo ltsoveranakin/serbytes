@@ -1,16 +1,16 @@
-use crate::bytebuffer::write_macro::write_ty;
-use crate::ser_trait::SerBytes;
+use crate::bytebuffer::write::write_macro::write_ty;
+use crate::bytebuffer::IndexPointer;
+use crate::prelude::SerBytes;
 use byteorder::ByteOrder;
 use std::io;
 use std::io::ErrorKind;
-use std::marker::PhantomData;
 
-pub struct WriteByteBuffer {
+pub struct WriteByteBufferOwned {
     buf: Vec<u8>,
     bit_pos: usize,
 }
 
-impl WriteByteBuffer {
+impl WriteByteBufferOwned {
     pub fn new() -> Self {
         Self::with_capacity(0)
     }
@@ -92,7 +92,7 @@ impl WriteByteBuffer {
     }
 
     pub fn write_at_index_pointer<S: SerBytes>(&mut self, index_pointer: &IndexPointer<S>, val: S) {
-        let mut temp_bb = WriteByteBuffer::new();
+        let mut temp_bb = WriteByteBufferOwned::new();
         val.to_buf(&mut temp_bb);
 
         self.buf[index_pointer.index..(index_pointer.index + index_pointer.len)]
@@ -129,20 +129,4 @@ impl WriteByteBuffer {
     }
 
     // pub fn flush_bits
-}
-
-pub struct IndexPointer<S> {
-    index: usize,
-    len: usize,
-    _s: PhantomData<S>,
-}
-
-impl<S> IndexPointer<S> {
-    fn new(index: usize, len: usize) -> Self {
-        Self {
-            index,
-            len,
-            _s: PhantomData,
-        }
-    }
 }
