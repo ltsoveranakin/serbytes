@@ -14,6 +14,7 @@ pub trait SerBytes {
         Self: Sized,
     {
         let mut buf = ReadByteBufferOwned::from_vec(vec);
+
         Self::from_buf(&mut buf.rbb_ref_mut())
     }
 
@@ -21,7 +22,12 @@ pub trait SerBytes {
     where
         Self: Sized,
     {
-        Self::from_vec(bytes.to_vec())
+        let mut index = 0;
+        let mut bit_index = 0;
+
+        let mut rbb = ReadByteBufferRefMut::from_bytes(bytes, &mut index, &mut bit_index);
+
+        Self::from_buf(&mut rbb)
     }
 
     fn to_bb(&self) -> WriteByteBufferOwned {

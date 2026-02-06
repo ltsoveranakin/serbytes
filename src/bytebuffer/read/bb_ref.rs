@@ -8,7 +8,7 @@ pub struct ReadByteBufferRefMut<'a> {
 }
 
 impl<'a> ReadByteBufferRefMut<'a> {
-    pub fn from_bytes(buf: &'a mut [u8], index: &'a mut usize, bit_index: &'a mut usize) -> Self {
+    pub fn from_bytes(buf: &'a [u8], index: &'a mut usize, bit_index: &'a mut usize) -> Self {
         Self {
             buf,
             index,
