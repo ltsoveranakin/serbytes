@@ -5,7 +5,7 @@ pub(crate) fn impl_from_named_fields(named_fields: &FieldsNamed) -> proc_macro2:
     let mut from_body = Vec::new();
 
     for field in &named_fields.named {
-        let Field { ident, .. } = field;
+        let Field { ident, attrs, .. } = field;
         from_body.push(quote! {
             #ident: serbytes::prelude::from_buf(buf)?
         });
