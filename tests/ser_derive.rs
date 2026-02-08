@@ -34,16 +34,6 @@ fn test_struct_derive() {
     assert_eq!(total_size, b.approx_size());
 }
 
-// fn approx_size(&self) -> usize {
-//     match self {
-//         Self::V2 {
-//             f1,
-//             f2,
-//             f3,
-//         } =>   {1u8.approx_size () + f1.approx_size () + f2.approx_size () + f3. approx_size ()} # ( approx_size_body_tokens   ),   +
-//     }
-// }
-
 #[test]
 fn test_enum_derive() {
     #[derive(SerBytes, Debug, Eq, PartialEq)]
@@ -106,4 +96,35 @@ fn test_enum_derive() {
     assert_eq!(b1_size, total_b1_size);
     assert_eq!(b2_size, total_b2_size);
     assert_eq!(b3_size, total_b3_size);
+}
+
+#[test]
+fn test_may_not_exist() {
+    #[derive(SerBytes, Debug, Eq, PartialEq)]
+    struct FieldsMayNotExist {
+        f1: u32,
+        f2: MayNotExistDefault<u32>,
+        f3: MayNotExistDefault<i32>,
+        // f4: u32,
+    }
+
+    let mut buf = WriteByteBufferOwned::new();
+
+    let initial_value = 10u32;
+
+    initial_value.to_buf(&mut buf);
+
+    let mut rbb = ReadByteBufferOwned::from_vec(buf.into_vec());
+
+    let fields_defaulted =
+        FieldsMayNotExist::from_buf(&mut rbb.rbb_ref_mut()).expect("Read data from bytebuffer");
+
+    assert_eq!(
+        fields_defaulted,
+        FieldsMayNotExist {
+            f1: initial_value,
+            f2: u32::default().into(),
+            f3: i32::default().into(),
+        }
+    )
 }

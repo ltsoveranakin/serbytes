@@ -18,6 +18,10 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
         approx_size_function_body,
     } = match &fields {
         Fields::Named(named_fields) => {
+            // if let Err(e) = verify_may_not_exist_attributes(named_fields) {
+            //     return e.into_compile_error().into();
+            // };
+
             let from_body = impl_from_named_fields(named_fields);
             let ToBufTokens { destructure, body } = impl_to_named_fields(named_fields);
             let approx_size_body = impl_approx_size_named_fields(named_fields);
@@ -105,3 +109,47 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
         }
     }
 }
+
+// For future :p
+
+// fn verify_may_not_exist_attributes(named_fields: &FieldsNamed) -> syn::Result<()> {
+//     let mut might_not_exist_declared = false;
+//
+//     for field in &named_fields.named {
+//         if has_may_not_exist_attribute(&field.attrs) {
+//             might_not_exist_declared = true;
+//             if let Type::Path(type_path) = &field.ty {
+//                 if !type_path
+//                     .path
+//                     .segments
+//                     .last()
+//                     .is_some_and(|segment| segment.ident == "Option")
+//                 {
+//                     return Err(syn::Error::new_spanned(
+//                         field,
+//                         "Fields with the #[may_not_exist] attribute must be of type Option",
+//                     ));
+//                 }
+//             }
+//         } else {
+//             if might_not_exist_declared {
+//                 return Err(syn::Error::new_spanned(
+//                     field,
+//                     "Fields without the #[may_not_exist] attribute cannot occur after fields with the #[may_not_exist] attribute",
+//                 ));
+//             }
+//         }
+//     }
+//
+//     Ok(())
+// }
+//
+// fn has_may_not_exist_attribute(attributes: &[Attribute]) -> bool {
+//     for attribute in attributes.iter() {
+//         if attribute.path().is_ident("may_not_exist") {
+//             return true;
+//         }
+//     }
+//
+//     false
+// }
