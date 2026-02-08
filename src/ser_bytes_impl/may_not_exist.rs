@@ -88,6 +88,12 @@ impl<S: SerBytes + Default> SerBytes for MayNotExistDefault<S> {
     }
 }
 
+impl<S: Default> Default for MayNotExistDefault<S> {
+    fn default() -> Self {
+        Self(S::default())
+    }
+}
+
 impl<S: Clone> Clone for MayNotExistDefault<S> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
