@@ -75,6 +75,17 @@ impl<S: SerBytes + Default> SerBytes for MayNotExistDefault<S> {
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         self.0.to_buf(buf);
     }
+
+    fn size_hint() -> usize
+    where
+        Self: Sized,
+    {
+        S::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        self.0.approx_size()
+    }
 }
 
 impl<S: Clone> Clone for MayNotExistDefault<S> {
