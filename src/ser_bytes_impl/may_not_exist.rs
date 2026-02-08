@@ -88,6 +88,12 @@ impl<S: SerBytes + Default> SerBytes for MayNotExistDefault<S> {
     }
 }
 
+impl<S> MayNotExistDefault<S> {
+    pub fn into_inner(self) -> S {
+        self.0
+    }
+}
+
 impl<S: Default> Default for MayNotExistDefault<S> {
     fn default() -> Self {
         Self(S::default())
