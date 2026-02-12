@@ -1,15 +1,18 @@
-use crate::bytebuffer;
-use crate::bytebuffer::{ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned};
+use crate::bytebuffer::{
+    BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned,
+};
 use bytes::Bytes;
+use std::fs;
+use std::path::Path;
 
 pub trait SerBytes {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self>
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
         Self: Sized;
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned);
 
-    fn from_vec(vec: Vec<u8>) -> bytebuffer::BBReadResult<Self>
+    fn from_vec(vec: Vec<u8>) -> BBReadResult<Self>
     where
         Self: Sized,
     {
@@ -18,7 +21,7 @@ pub trait SerBytes {
         Self::from_buf(&mut buf.rbb_ref_mut())
     }
 
-    fn from_bytes(bytes: &[u8]) -> bytebuffer::BBReadResult<Self>
+    fn from_bytes(bytes: &[u8]) -> BBReadResult<Self>
     where
         Self: Sized,
     {
@@ -55,6 +58,15 @@ pub trait SerBytes {
 
     fn approx_size(&self) -> usize {
         0
+    }
+
+    fn from_file_path(path: impl AsRef<Path>) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        let buf = fs::read(path)?;
+
+        Self::from_vec(buf)
     }
 }
 

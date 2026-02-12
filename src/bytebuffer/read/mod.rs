@@ -26,3 +26,9 @@ impl From<ReadError> for io::Error {
         ErrorKind::UnexpectedEof.into()
     }
 }
+
+impl From<io::Error> for ReadError {
+    fn from(value: io::Error) -> Self {
+        Self::new(value.to_string())
+    }
+}
