@@ -2,8 +2,9 @@ use crate::bytebuffer::{
     BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned,
 };
 use bytes::Bytes;
-use std::fs;
+use std::io::ErrorKind;
 use std::path::Path;
+use std::{fs, io};
 
 pub trait SerBytes {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
@@ -67,6 +68,22 @@ pub trait SerBytes {
         let buf = fs::read(path)?;
 
         Self::from_vec(buf)
+    }
+
+    fn write_to_file_path(&self, path: impl AsRef<Path>) -> io::Result<()> {
+        if !fs::exists(&path)? {
+            let parent_dir = if let Some(parent_dir) = path.as_ref().parent() {
+                parent_dir
+            } else {
+                return Err(ErrorKind::InvalidFilename.into());
+            };
+
+            fs::create_dir_all(parent_dir)?;
+        }
+
+        let wbb = self.to_bb();
+
+        fs::write(path, wbb.buf())
     }
 }
 
