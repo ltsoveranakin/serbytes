@@ -92,7 +92,7 @@ where
     }
 }
 
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct DefaultDataProvider;
 
 impl<T> MayNotExistDataProvider<T> for DefaultDataProvider
