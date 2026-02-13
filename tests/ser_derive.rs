@@ -100,12 +100,22 @@ fn test_enum_derive() {
 
 #[test]
 fn test_may_not_exist() {
+    const CUSTOM_I32: i32 = 4578;
+
+    #[derive(Debug, Eq, PartialEq)]
+    struct CustomDataProvider;
+
+    impl MayNotExistDataProvider<i32> for CustomDataProvider {
+        fn get_data() -> i32 {
+            CUSTOM_I32
+        }
+    }
+
     #[derive(SerBytes, Debug, Eq, PartialEq)]
     struct FieldsMayNotExist {
         f1: u32,
-        f2: MayNotExistDefault<u32>,
-        f3: MayNotExistDefault<i32>,
-        // f4: u32,
+        f2: MayNotExistOrDefault<u32>,
+        f3: MayNotExistOrElse<i32, CustomDataProvider>,
     }
 
     let mut buf = WriteByteBufferOwned::new();
@@ -124,7 +134,7 @@ fn test_may_not_exist() {
         FieldsMayNotExist {
             f1: initial_value,
             f2: u32::default().into(),
-            f3: i32::default().into(),
+            f3: CUSTOM_I32.into(),
         }
     )
 }

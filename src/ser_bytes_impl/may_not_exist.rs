@@ -1,5 +1,6 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
+use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 /// For field values which may not exist. Data in this type must be initialized when serializing
@@ -7,7 +8,7 @@ use std::ops::{Deref, DerefMut};
 /// This should only be used on struct fields that can ensure no other data is stored after in the ByteBuffer
 ///
 /// This panics when serializing to a buffer if Self is [`MayNotExist::DoesNotExist`]
-/// For a type that doesn't panic on write, use [`MayNotExistDefault`]
+/// For a type that doesn't panic on write, use [`MayNotExistOrElse`]
 pub enum MayNotExist<S> {
     Exists(S),
     DoesNotExist,
@@ -53,10 +54,21 @@ impl<S: SerBytes> SerBytes for MayNotExist<S> {
     }
 }
 
-#[derive(Debug)]
-pub struct MayNotExistDefault<S>(S);
+pub trait MayNotExistDataProvider<T> {
+    fn get_data() -> T;
+}
 
-impl<S: SerBytes + Default> SerBytes for MayNotExistDefault<S> {
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
+pub struct MayNotExistOrElse<S, F> {
+    inner: S,
+    _callback: PhantomData<F>,
+}
+
+impl<S, F> SerBytes for MayNotExistOrElse<S, F>
+where
+    S: SerBytes,
+    F: MayNotExistDataProvider<S>,
+{
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
         Self: Sized,
@@ -66,67 +78,51 @@ impl<S: SerBytes + Default> SerBytes for MayNotExistDefault<S> {
         {
             data
         } else {
-            S::default()
+            F::get_data()
         };
 
-        Ok(Self(data))
+        Ok(Self {
+            inner: data,
+            _callback: PhantomData,
+        })
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        self.0.to_buf(buf);
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-
-    fn approx_size(&self) -> usize {
-        self.0.approx_size()
+        self.inner.to_buf(buf);
     }
 }
 
-impl<S> MayNotExistDefault<S> {
+#[derive(Debug, Default, Eq, PartialEq)]
+pub struct DefaultDataProvider;
+
+impl<T> MayNotExistDataProvider<T> for DefaultDataProvider
+where
+    T: Default,
+{
+    fn get_data() -> T {
+        T::default()
+    }
+}
+
+pub type MayNotExistOrDefault<S> = MayNotExistOrElse<S, DefaultDataProvider>;
+
+impl<S, F> MayNotExistOrElse<S, F> {
     pub fn into_inner(self) -> S {
-        self.0
+        self.inner
     }
 }
 
-impl<S: Default> Default for MayNotExistDefault<S> {
-    fn default() -> Self {
-        Self(S::default())
-    }
-}
-
-impl<S: Clone> Clone for MayNotExistDefault<S> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl<S: Copy> Copy for MayNotExistDefault<S> {}
-
-impl<S: PartialEq> PartialEq for MayNotExistDefault<S> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.eq(other)
-    }
-}
-
-impl<S: Eq> Eq for MayNotExistDefault<S> {}
-
-impl<S> Deref for MayNotExistDefault<S> {
+impl<S, F> Deref for MayNotExistOrElse<S, F> {
     type Target = S;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.inner
     }
 }
 
-impl<S> DerefMut for MayNotExistDefault<S> {
+impl<S, F> DerefMut for MayNotExistOrElse<S, F> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.inner
     }
 }
 
@@ -136,8 +132,11 @@ impl<T> From<T> for MayNotExist<T> {
     }
 }
 
-impl<T> From<T> for MayNotExistDefault<T> {
+impl<T, F> From<T> for MayNotExistOrElse<T, F> {
     fn from(value: T) -> Self {
-        Self(value)
+        Self {
+            inner: value,
+            _callback: PhantomData,
+        }
     }
 }
