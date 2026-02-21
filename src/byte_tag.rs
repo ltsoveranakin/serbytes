@@ -66,6 +66,7 @@ where
         for _ in 0..len {
             let key = K::from_buf(&mut rbb)?;
             let value = V::from_buf(&mut rbb)?;
+
             tags.insert(key, value);
         }
 
@@ -74,5 +75,9 @@ where
 
     pub fn get_tag(&mut self, tag_key: &K) -> Option<&V> {
         self.tags.get(tag_key)
+    }
+
+    pub fn take_tag(&mut self, tag_key: &K) -> Option<V> {
+        self.tags.remove(tag_key)
     }
 }
