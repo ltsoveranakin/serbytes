@@ -37,7 +37,7 @@ impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
         self.len += 1;
 
         self.wbb
-            .write_at_index_pointer(&self.len_index_ptr, &(self.len as u16));
+            .write_at_index_pointer(self.len_index_ptr, &(self.len as u16));
     }
 
     pub fn get_buf(self) -> WriteByteBufferOwned {

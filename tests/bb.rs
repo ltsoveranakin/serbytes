@@ -118,7 +118,16 @@ fn test_index_pointer() {
 
     let new_i32 = 187452;
 
-    wbb.write_at_index_pointer(&i32_index_ptr, &new_i32);
+    wbb.write_at_index_pointer(i32_index_ptr, &new_i32);
+
+    let mut dyn_sized = vec![10, 20, 30];
+
+    let ip_dst = wbb.write_with_index_pointer(&dyn_sized);
+
+    dyn_sized.push(60);
+
+    wbb.try_write_at_index_pointer(ip_dst, &dyn_sized)
+        .expect_err("Fail to write a different sized type to the buffer");
 
     let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
 

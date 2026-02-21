@@ -87,8 +87,9 @@ impl WriteByteBufferOwned {
 
     /// Write the Ser type to the buffer and returns an [`IndexPointer`] at the location where the type was written.
 
-    /// We don't need to restrict this method to [`SerBytesStaticSized`] because we don't care then length of the content written.
+    /// We don't need to restrict this method to [`SerBytesStaticSized`] because we don't care about the length of the content written as its at the end of the buffer anyways.
     /// We only care when trying to write the data back at the [`IndexPointer`]
+    #[must_use = "If the index pointer is not needed for later operations, use the SerBytes::to_buf method on the type"]
     pub fn write_with_index_pointer<S>(&mut self, val: &S) -> IndexPointer<S>
     where
         S: SerBytes,
@@ -99,7 +100,9 @@ impl WriteByteBufferOwned {
 
         self.buf.extend_from_slice(&bb.buf);
 
-        IndexPointer::new(index, S::size_hint())
+        let new_len = self.buf.len();
+
+        IndexPointer::new(index, new_len - index)
     }
 
     /// Writes data at the given [`IndexPointer`], if you need a method that accepts any type which implements [`SerBytes`],
@@ -107,7 +110,7 @@ impl WriteByteBufferOwned {
     ///
     /// This function will not fail so long as all types which implement [`SerBytesStaticSized`] adhere to it's rules
 
-    pub fn write_at_index_pointer<S>(&mut self, index_pointer: &IndexPointer<S>, val: &S)
+    pub fn write_at_index_pointer<S>(&mut self, index_pointer: IndexPointer<S>, val: &S)
     where
         S: SerBytesStaticSized,
     {
@@ -122,7 +125,7 @@ impl WriteByteBufferOwned {
 
     pub fn try_write_at_index_pointer<S>(
         &mut self,
-        index_pointer: &IndexPointer<S>,
+        index_pointer: IndexPointer<S>,
         val: &S,
     ) -> Result<(), usize>
     where

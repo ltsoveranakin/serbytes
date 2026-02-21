@@ -1,7 +1,10 @@
 pub mod collections;
 mod deref_types;
 mod may_not_exist;
+mod versioning_wrapper;
+
 pub use may_not_exist::*;
+pub use versioning_wrapper::*;
 
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_bytes_impl_macro::ser_data_impl;
