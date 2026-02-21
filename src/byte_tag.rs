@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
-pub struct WriteSerByteTag<S: SerBytes, V: SerBytes> {
+pub struct WriteSerByteTag<S, V> {
     wbb: WriteByteBufferOwned,
     len: usize,
     len_index_ptr: IndexPointer<u16>,
@@ -12,7 +12,11 @@ pub struct WriteSerByteTag<S: SerBytes, V: SerBytes> {
     _tag_value: PhantomData<V>,
 }
 
-impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
+impl<K, V> WriteSerByteTag<K, V>
+where
+    K: SerBytes,
+    V: SerBytes,
+{
     pub fn new() -> Self {
         let mut wbb = WriteByteBufferOwned::with_capacity(u16::size_hint());
 
@@ -45,11 +49,15 @@ impl<K: SerBytes, V: SerBytes> WriteSerByteTag<K, V> {
     }
 }
 
-pub struct ReadSerByteTag<K: SerBytes + Eq + Hash, V: SerBytes> {
+pub struct ReadSerByteTag<K, V> {
     tags: HashMap<K, V>,
 }
 
-impl<K: SerBytes + Eq + Hash, V: SerBytes> ReadSerByteTag<K, V> {
+impl<K, V> ReadSerByteTag<K, V>
+where
+    K: SerBytes + Eq + Hash,
+    V: SerBytes,
+{
     pub fn from_buf(mut rbb: ReadByteBufferRefMut) -> BBReadResult<Self> {
         let len = u16::from_buf(&mut rbb)?;
 
