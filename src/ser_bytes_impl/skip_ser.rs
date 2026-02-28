@@ -1,8 +1,12 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::ser_bytes_impl::FallbackDataProvider;
+
 use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+
+pub trait FallbackDataProvider<S> {
+    fn get_data() -> S;
+}
 
 pub struct SkipSerialization<S, F> {
     data: S,
