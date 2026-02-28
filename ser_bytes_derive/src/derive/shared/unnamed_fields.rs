@@ -33,8 +33,9 @@ pub(crate) fn impl_to_unnamed_fields(unnamed_fields: &FieldsUnnamed) -> ToBufTok
         });
 
         to_body.push(quote! {
-            #destructure_var.to_buf(buf);
+            serbytes::prelude::to_buf(#destructure_var, buf);
         });
+
         i += 1;
     }
 

@@ -25,15 +25,13 @@ pub(crate) fn impl_to_named_fields(named_fields: &FieldsNamed) -> ToBufTokens {
     let mut to_destructure_body = Vec::new();
     let mut to_body = Vec::new();
 
-    for field in &named_fields.named {
-        let Field { ident, .. } = field;
-
+    for Field { ident, .. } in &named_fields.named {
         to_destructure_body.push(quote! {
             #ident
         });
 
         to_body.push(quote! {
-            #ident.to_buf(buf);
+            serbytes::prelude::to_buf(#ident, buf);
         });
     }
 
@@ -54,10 +52,10 @@ pub(crate) fn impl_approx_size_named_fields(
     let mut approx_size_body_tokens = Vec::new();
 
     for field in &named_fields.named {
-        let Field { ident, .. } = field;
+        let Field { ident, ty, .. } = field;
 
         approx_size_body_tokens.push(quote! {
-            #ident.approx_size()
+               <#ty as serbytes::prelude::SerBytes>::approx_size(&#ident)
         });
     }
 

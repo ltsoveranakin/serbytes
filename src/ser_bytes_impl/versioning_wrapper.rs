@@ -1,93 +1,83 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
-use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
-
-pub trait VersioningDataProvider<V, I, O> {
-    fn get_versioned_data(version: V, data_input: I) -> O;
-}
 
 pub trait CurrentVersion {
-    fn get_current_version() -> Self;
-}
+    type Output;
+    fn get_data_from_buf(&self, buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self::Output>;
 
-pub struct UnchangedVersioningDataProvider<V, O> {
-    _version: PhantomData<V>,
-    _outgoing: PhantomData<O>,
-}
-
-impl<V, O> VersioningDataProvider<V, O, O> for UnchangedVersioningDataProvider<V, O> {
-    fn get_versioned_data(_: V, data_input: O) -> O {
-        data_input
-    }
+    fn current_version() -> Self;
 }
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
-pub struct VersioningWrapper<S, V, I, F> {
-    inner: S,
-    _version: PhantomData<V>,
-    _incoming: PhantomData<I>,
-    _callback: PhantomData<F>,
+pub struct VersioningWrapper<D, V> {
+    data: D,
+    version: V,
 }
 
-impl<V, I, O, F> SerBytes for VersioningWrapper<O, V, I, F>
+impl<D, V> SerBytes for VersioningWrapper<D, V>
 where
-    V: SerBytes + CurrentVersion,
-    I: SerBytes,
-    O: SerBytes,
-    F: VersioningDataProvider<V, I, O>,
+    D: SerBytes,
+    V: SerBytes + CurrentVersion<Output = D>,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
         Self: Sized,
     {
         let version = V::from_buf(buf)?;
-        let incoming_data = I::from_buf(buf)?;
+        let data = version.get_data_from_buf(buf)?;
 
-        let outgoing = F::get_versioned_data(version, incoming_data);
-
-        Ok(Self {
-            inner: outgoing,
-            _version: PhantomData,
-            _incoming: PhantomData,
-            _callback: PhantomData,
-        })
+        Ok(Self { data, version })
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        V::get_current_version().to_buf(buf);
-
-        self.inner.to_buf(buf);
+        self.version.to_buf(buf);
+        self.data.to_buf(buf);
     }
 }
 
-impl<S, V, I, F> Deref for VersioningWrapper<S, V, I, F> {
-    type Target = S;
+// impl<D, V> Deref for VersioningWrapper<D, V> {
+//     type Target = D;
+//
+//     fn deref(&self) -> &Self::Target {
+//         &self.data
+//     }
+// }
+//
+// impl<D, V> DerefMut for VersioningWrapper<D, V> {
+//     fn deref_mut(&mut self) -> &mut Self::Target {
+//         &mut self.data
+//     }
+// }
 
-    fn deref(&self) -> &Self::Target {
-        &self.inner
+impl<D, V> From<D> for VersioningWrapper<D, V>
+where
+    V: CurrentVersion,
+{
+    fn from(value: D) -> Self {
+        Self::new(value)
     }
 }
 
-impl<S, V, I, F> DerefMut for VersioningWrapper<S, V, I, F> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl<S, V, I, F> From<S> for VersioningWrapper<S, V, I, F> {
-    fn from(value: S) -> Self {
+impl<D, V> VersioningWrapper<D, V>
+where
+    V: CurrentVersion,
+{
+    pub fn new(data: D) -> Self {
         Self {
-            inner: value,
-            _version: PhantomData,
-            _incoming: PhantomData,
-            _callback: PhantomData,
+            data,
+            version: V::current_version(),
         }
     }
-}
 
-impl<S, V, I, F> VersioningWrapper<S, V, I, F> {
-    pub fn into_inner(self) -> S {
-        self.inner
+    pub fn into_inner(self) -> D {
+        self.data
+    }
+
+    pub fn inner(&self) -> &D {
+        &self.data
+    }
+
+    pub fn inner_mut(&mut self) -> &mut D {
+        &mut self.data
     }
 }
