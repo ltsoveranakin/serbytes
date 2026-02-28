@@ -99,42 +99,39 @@ fn test_enum_derive() {
 }
 
 #[test]
-fn test_may_not_exist() {
-    const CUSTOM_I32: i32 = 4578;
-
-    #[derive(Debug, Eq, PartialEq)]
-    struct CustomDataProvider;
-
-    impl MayNotExistDataProvider<i32> for CustomDataProvider {
-        fn get_data() -> i32 {
-            CUSTOM_I32
-        }
-    }
-
+fn test_generics() {
     #[derive(SerBytes, Debug, Eq, PartialEq)]
-    struct FieldsMayNotExist {
-        f1: u32,
-        f2: MayNotExistOrDefault<u32>,
-        f3: MayNotExistOrElse<i32, CustomDataProvider>,
+    struct GenStruct<T> {
+        name: String,
+        data: T,
+        end: i32,
     }
 
-    let mut buf = WriteByteBufferOwned::new();
+    type NumberedGen = GenStruct<u32>;
+    type StringedGen = GenStruct<String>;
 
-    let initial_value = 10u32;
+    let numbered = NumberedGen {
+        name: "numbered name".to_string(),
+        data: 183,
+        end: -857,
+    };
 
-    initial_value.to_buf(&mut buf);
+    let stringed = StringedGen {
+        name: "stringed name".to_string(),
+        data: "the data :3".to_string(),
+        end: -857,
+    };
 
-    let mut rbb = ReadByteBufferOwned::from_vec(buf.into_vec());
-
-    let fields_defaulted =
-        FieldsMayNotExist::from_buf(&mut rbb.rbb_ref_mut()).expect("Read data from bytebuffer");
-
-    assert_eq!(
-        fields_defaulted,
-        FieldsMayNotExist {
-            f1: initial_value,
-            f2: u32::default().into(),
-            f3: CUSTOM_I32.into(),
-        }
+    let numbered_2 = NumberedGen::from_buf(
+        &mut ReadByteBufferOwned::from_vec(numbered.to_bb().into_vec()).rbb_ref_mut(),
     )
+    .expect("Deserialize numbered generic");
+    let stringed_2 = StringedGen::from_buf(
+        &mut ReadByteBufferOwned::from_vec(stringed.to_bb().into_vec()).rbb_ref_mut(),
+    )
+    .expect("Deserialize stringed generic");
+
+    assert_eq!(numbered, numbered_2);
+
+    assert_eq!(stringed, stringed_2);
 }

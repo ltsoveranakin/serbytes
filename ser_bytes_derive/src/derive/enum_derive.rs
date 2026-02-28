@@ -1,15 +1,19 @@
+use crate::derive::shared::FunctionBodies;
 use crate::derive::shared::named_fields::{
-    impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields, ToBufTokens,
+    ToBufTokens, impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields,
 };
 use crate::derive::shared::unnamed_fields::{
     impl_approx_size_unnamed_fields, impl_from_unnamed_fields, impl_to_unnamed_fields,
 };
-use crate::derive::shared::FunctionBodies;
 use proc_macro2::Ident;
 use quote::quote;
-use syn::{DataEnum, Fields, Variant};
+use syn::{DataEnum, Fields, Generics, Variant};
 
-pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_macro2::TokenStream {
+pub(super) fn impl_derive_enum(
+    enum_data: DataEnum,
+    enum_name: Ident,
+    generics: Generics,
+) -> proc_macro2::TokenStream {
     let mut from_buf_match_tokens = Vec::new();
     let mut to_buf_match_tokens = Vec::new();
     let mut approx_size_match_tokens = Vec::new();
@@ -103,8 +107,10 @@ pub(super) fn impl_derive_enum(enum_data: DataEnum, enum_name: Ident) -> proc_ma
         approx_size_match_tokens.push(approx_size_function_body);
     }
 
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     quote! {
-        impl serbytes::prelude::SerBytes for #enum_name {
+        impl #impl_generics serbytes::prelude::SerBytes for #enum_name #ty_generics #where_clause{
             fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
                 let index = u8::from_buf(buf)?;
                 match index {

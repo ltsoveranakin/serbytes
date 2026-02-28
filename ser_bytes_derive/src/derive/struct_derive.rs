@@ -1,15 +1,19 @@
+use crate::derive::shared::FunctionBodies;
 use crate::derive::shared::named_fields::{
-    impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields, ToBufTokens,
+    ToBufTokens, impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields,
 };
 use crate::derive::shared::unnamed_fields::{
     impl_approx_size_unnamed_fields, impl_from_unnamed_fields, impl_to_unnamed_fields,
 };
-use crate::derive::shared::FunctionBodies;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::{DataStruct, Fields};
+use syn::{DataStruct, Fields, Generics};
 
-pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) -> TokenStream {
+pub(super) fn impl_derive_struct(
+    struct_data: DataStruct,
+    struct_name: Ident,
+    generics: Generics,
+) -> TokenStream {
     let DataStruct { fields, .. } = struct_data;
 
     let FunctionBodies {
@@ -86,8 +90,10 @@ pub(super) fn impl_derive_struct(struct_data: DataStruct, struct_name: Ident) ->
         },
     };
 
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     quote! {
-        impl serbytes::prelude::SerBytes for #struct_name {
+        impl #impl_generics serbytes::prelude::SerBytes for #struct_name #ty_generics #where_clause{
             fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
                 #from_function_body
             }
