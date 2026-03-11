@@ -140,3 +140,10 @@ fn test_index_pointer() {
 
     assert_eq!(test_u64, u64_read_value);
 }
+
+#[test]
+fn test_read_end_bit() {
+    let mut rbb = ReadByteBufferOwned::from_vec(Vec::new());
+
+    rbb.read_bool().expect_err("Should error and not panic");
+}

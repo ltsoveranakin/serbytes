@@ -1,5 +1,6 @@
 use crate::bytebuffer::read::read_macro::read_ref_ty;
 use crate::bytebuffer::{BBReadResult, ReadError};
+use std::ops::Index;
 
 pub struct ReadByteBufferRefMut<'a> {
     pub(super) buf: &'a [u8],
@@ -17,7 +18,11 @@ impl<'a> ReadByteBufferRefMut<'a> {
     }
 
     pub fn read_bit(&mut self) -> BBReadResult<u8> {
-        let bit = self.buf[*self.index] >> (7 - *self.bit_index) & 1;
+        if *self.index >= self.buf.len() {
+            return Err(ReadError::new("read bit out of index".into()));
+        }
+
+        let bit = self.buf.index(*self.index) >> (7 - *self.bit_index) & 1;
 
         *self.bit_index += 1;
 
