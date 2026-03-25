@@ -3,57 +3,6 @@ use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
-/// For field values which may not exist. Data in this type must be initialized when serializing
-///
-/// This should only be used on struct fields that can ensure no other data is stored after in the ByteBuffer
-///
-/// This panics when serializing to a buffer if Self is [`MayNotExist::DoesNotExist`]
-/// For a type that doesn't panic on write, use [`MayNotExistOrElse`]
-pub enum MayNotExist<S> {
-    Exists(S),
-    DoesNotExist,
-}
-
-impl<S: SerBytes> SerBytes for MayNotExist<S> {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
-    where
-        Self: Sized,
-    {
-        if let Ok(s) = S::from_buf(buf) {
-            Ok(Self::Exists(s))
-        } else {
-            Ok(Self::DoesNotExist)
-        }
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        match self {
-            Self::Exists(s) => {
-                s.to_buf(buf);
-            }
-
-            Self::DoesNotExist => {
-                panic!("Cannot write to buf, value does not exist");
-            }
-        }
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-
-    fn approx_size(&self) -> usize {
-        match self {
-            Self::Exists(s) => s.approx_size(),
-
-            Self::DoesNotExist => 0,
-        }
-    }
-}
-
 pub trait MayNotExistDataProvider<T> {
     fn get_data() -> T;
 }
@@ -73,8 +22,8 @@ where
     where
         Self: Sized,
     {
-        let data = if let MayNotExist::Exists(data) =
-            MayNotExist::from_buf(buf).expect("from_buf method on MayNotExist NEVER returns Err")
+        let data = if let Ok(data) =
+            BBReadResult::from_buf(buf).expect("from_buf method on MayNotExist NEVER returns Err")
         {
             data
         } else {
@@ -123,12 +72,6 @@ impl<S, F> Deref for MayNotExistOrElse<S, F> {
 impl<S, F> DerefMut for MayNotExistOrElse<S, F> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
-    }
-}
-
-impl<T> From<T> for MayNotExist<T> {
-    fn from(value: T) -> Self {
-        Self::Exists(value)
     }
 }
 

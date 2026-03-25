@@ -79,7 +79,10 @@ impl<T> SerBytes for PhantomData<T> {
 
 impl<T> SerBytesStaticSized for PhantomData<T> {}
 
-impl<S: SerBytes> SerBytes for Option<S> {
+impl<S> SerBytes for Option<S>
+where
+    S: SerBytes,
+{
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
         Self: Sized,
@@ -104,6 +107,38 @@ impl<S: SerBytes> SerBytes for Option<S> {
 
     fn size_hint() -> usize {
         bool::size_hint()
+    }
+}
+
+impl<S> SerBytes for BBReadResult<S>
+where
+    S: SerBytes,
+{
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        Ok(S::from_buf(buf))
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        self.as_ref()
+            .expect("Attempt write err to buffer")
+            .to_buf(buf);
+    }
+
+    fn size_hint() -> usize
+    where
+        Self: Sized,
+    {
+        S::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        match self {
+            Ok(s) => s.approx_size(),
+            Err(_) => S::size_hint(),
+        }
     }
 }
 
