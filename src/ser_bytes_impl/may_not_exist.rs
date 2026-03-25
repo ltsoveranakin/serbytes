@@ -75,6 +75,12 @@ impl<S, F> DerefMut for MayNotExistOrElse<S, F> {
     }
 }
 
+impl<T> From<T> for MayNotExist<T> {
+    fn from(value: T) -> Self {
+        Self::Exists(value)
+    }
+}
+
 impl<T, F> From<T> for MayNotExistOrElse<T, F> {
     fn from(value: T) -> Self {
         Self {
