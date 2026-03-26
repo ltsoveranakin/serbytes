@@ -8,7 +8,7 @@ mod read_macro;
 pub use bb_ref::*;
 pub use owned::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReadError {
     pub message: String,
 }
