@@ -1,7 +1,6 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
 
 pub trait MayNotExistDataProvider<T> {
     fn get_data() -> T;
@@ -9,7 +8,7 @@ pub trait MayNotExistDataProvider<T> {
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct MayNotExistOrElse<S, F> {
-    inner: S,
+    pub inner: S,
     _callback: PhantomData<F>,
 }
 
@@ -59,19 +58,12 @@ impl<S, F> MayNotExistOrElse<S, F> {
     pub fn into_inner(self) -> S {
         self.inner
     }
-}
 
-impl<S, F> Deref for MayNotExistOrElse<S, F> {
-    type Target = S;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl<S, F> DerefMut for MayNotExistOrElse<S, F> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
+    pub fn new(s: S) -> Self {
+        Self {
+            inner: s,
+            _callback: PhantomData,
+        }
     }
 }
 
