@@ -6,6 +6,8 @@ pub mod glam;
 mod json_like;
 mod may_not_exist;
 mod ser_bytes_impl_macro;
+#[cfg(feature = "simple_id")]
+pub mod simple_id;
 mod skip_ser;
 mod versioning_wrapper;
 
