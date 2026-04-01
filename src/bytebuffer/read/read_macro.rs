@@ -8,7 +8,7 @@ macro_rules! read_ref_ty {
 
             let bytes = crate::bytebuffer::ReadByteBufferRefMut::read_bytes(self, $size).map_err(|read_error| {
                 paste! {
-                    crate::prelude::ReadError::new(crate::bytebuffer::SpecificError::[<$t:upper>], stringify!($t).into(), Some(read_error))
+                    crate::bytebuffer::ReadError::new_parent(read_error, stringify!($t))
                 }
             })?;
 

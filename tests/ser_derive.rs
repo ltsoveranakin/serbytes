@@ -99,7 +99,7 @@ fn test_enum_derive() {
 }
 
 #[test]
-fn test_generics() {
+fn test_generic_struct() {
     #[derive(SerBytes, Debug, Eq, PartialEq)]
     struct GenStruct<T> {
         name: String,
@@ -134,4 +134,63 @@ fn test_generics() {
     assert_eq!(numbered, numbered_2);
 
     assert_eq!(stringed, stringed_2);
+}
+
+#[test]
+fn test_generic_enum() {
+    #[derive(SerBytes, Debug, Eq, PartialEq)]
+    enum GenEnum<T, B> {
+        Empty,
+        Some(T),
+        Other(B),
+    }
+
+    type NumberedGen = GenEnum<u32, i8>;
+    type StringedGen = GenEnum<String, u8>;
+
+    let numbered_empty = NumberedGen::Empty;
+    let numbered_first = NumberedGen::Some(3829);
+    let numbered_second = NumberedGen::Other(23);
+
+    let stringed_empty = StringedGen::Empty;
+    let stringed_first = StringedGen::Some("String1".to_string());
+    let stringed_second = StringedGen::Other(72);
+
+    let mut numbered_buf = WriteByteBufferOwned::new();
+
+    numbered_empty.to_buf(&mut numbered_buf);
+    numbered_first.to_buf(&mut numbered_buf);
+    numbered_second.to_buf(&mut numbered_buf);
+
+    let mut numbered_rbb = ReadByteBufferOwned::from_vec(numbered_buf.into_vec());
+
+    let deserialized_numbered_empty = NumberedGen::from_buf(&mut numbered_rbb.rbb_ref_mut())
+        .expect("Deserialize empty numbered generic");
+    let deserialized_numbered_first = NumberedGen::from_buf(&mut numbered_rbb.rbb_ref_mut())
+        .expect("Deserialize first numbered generic");
+    let deserialized_numbered_second = NumberedGen::from_buf(&mut numbered_rbb.rbb_ref_mut())
+        .expect("Deserialize second numbered generic");
+
+    let mut stringed_buf = WriteByteBufferOwned::new();
+
+    stringed_empty.to_buf(&mut stringed_buf);
+    stringed_first.to_buf(&mut stringed_buf);
+    stringed_second.to_buf(&mut stringed_buf);
+
+    let mut stringed_rbb = ReadByteBufferOwned::from_vec(stringed_buf.into_vec());
+
+    let deserialized_stringed_empty = StringedGen::from_buf(&mut stringed_rbb.rbb_ref_mut())
+        .expect("Deserialize empty stringed generic");
+    let deserialized_stringed_first = StringedGen::from_buf(&mut stringed_rbb.rbb_ref_mut())
+        .expect("Deserialize first stringed generic");
+    let deserialized_stringed_second = StringedGen::from_buf(&mut stringed_rbb.rbb_ref_mut())
+        .expect("Deserialize second stringed generic");
+
+    assert_eq!(numbered_empty, deserialized_numbered_empty);
+    assert_eq!(numbered_first, deserialized_numbered_first);
+    assert_eq!(numbered_second, deserialized_numbered_second);
+
+    assert_eq!(stringed_empty, deserialized_stringed_empty);
+    assert_eq!(stringed_first, deserialized_stringed_first);
+    assert_eq!(stringed_second, deserialized_stringed_second);
 }

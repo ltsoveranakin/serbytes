@@ -50,13 +50,7 @@ impl SerBytes for String {
             })
         }
 
-        inner(buf).map_err(|read_error| {
-            ReadError::new(
-                read_error.specific_error.clone(),
-                "String".into(),
-                Some(read_error),
-            )
-        })
+        inner(buf).map_err(|read_error| read_error.new_parent("String"))
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {

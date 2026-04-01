@@ -55,8 +55,8 @@ impl<'a> ReadError<'a> {
         }
     }
 
-    pub fn new_parent(self, of: Cow<'a, str>) -> Self {
-        Self::new(self.specific_error.clone(), of, Some(self))
+    pub fn new_parent(self, of: impl Into<Cow<'a, str>>) -> Self {
+        Self::new(self.specific_error.clone(), of.into(), Some(self))
     }
 }
 

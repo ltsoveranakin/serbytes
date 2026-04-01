@@ -98,10 +98,8 @@ pub(super) fn impl_derive_struct(
                 };
 
                 inner().map_err(|read_error: serbytes::prelude::ReadError| {
-                    serbytes::prelude::ReadError::new(
-                        read_error.specific_error.clone(),
-                        stringify!(#struct_name).into(),
-                        Some(read_error),
+                    read_error.new_parent(
+                        stringify!(#struct_name),
                     )
                 })
             }
