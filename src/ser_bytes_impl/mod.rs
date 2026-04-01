@@ -15,7 +15,7 @@ pub use may_not_exist::*;
 pub use skip_ser::*;
 pub use versioning_wrapper::*;
 
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
+use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, ReadError, WriteByteBufferOwned};
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 
 use crate::ser_bytes_impl::ser_bytes_impl_macro::ser_data_impl;
@@ -111,21 +111,28 @@ where
     }
 }
 
-impl<S> SerBytes for BBReadResult<S>
+impl<S, E> SerBytes for Result<S, E>
 where
     S: SerBytes,
+    E: From<ReadError>,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
         Self: Sized,
     {
-        Ok(S::from_buf(buf))
+        Ok(S::from_buf(buf).map_err(|e| e.into()))
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        self.as_ref()
-            .expect("Attempt write err to buffer")
-            .to_buf(buf);
+        match &self {
+            Ok(s) => {
+                s.to_buf(buf);
+            }
+
+            Err(_) => {
+                panic!("Attempt to write error variant to buffer")
+            }
+        }
     }
 
     fn size_hint() -> usize
