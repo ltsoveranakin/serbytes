@@ -138,22 +138,3 @@ fn test_versioning() {
         "comparing deserialized data2 to original data",
     );
 }
-
-#[cfg(feature = "simple_id")]
-#[test]
-mod id_tests {
-    use serbytes::prelude::{ReadByteBufferOwned, SerBytes};
-
-    fn test_id() {
-        use simple_id::prelude::{Id, SmallRngIdGenerator};
-        let id = SmallRngIdGenerator::default().generate_new_id();
-
-        let wbb = id.to_bb();
-
-        let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
-
-        let read_id = Id::from_buf(&mut rbb.rbb_ref_mut()).expect("Read id from buffer");
-
-        assert_eq!(id, read_id);
-    }
-}
