@@ -22,22 +22,18 @@ pub(super) fn impl_derive_struct(
         approx_size_function_body,
     } = match &fields {
         Fields::Named(named_fields) => {
-            // if let Err(e) = verify_may_not_exist_attributes(named_fields) {
-            //     return e.into_compile_error().into();
-            // };
-
             let from_body = impl_from_named_fields(named_fields);
             let ToBufTokens { destructure, body } = impl_to_named_fields(named_fields);
             let approx_size_body = impl_approx_size_named_fields(named_fields);
 
             let from_function_body = quote! {
-                Ok(Self {
+                Ok(#struct_name {
                     #from_body
                 })
             };
 
             let to_function_body = quote! {
-                let Self {
+                let #struct_name {
                     #destructure
                 } = self;
 
@@ -45,7 +41,7 @@ pub(super) fn impl_derive_struct(
             };
 
             let approx_size_function_body = quote! {
-                let Self {
+                let #struct_name {
                     #destructure
                 } = self;
 
@@ -58,6 +54,7 @@ pub(super) fn impl_derive_struct(
                 approx_size_function_body,
             }
         }
+
         Fields::Unnamed(unnamed_fields) => {
             let from_body = impl_from_unnamed_fields(unnamed_fields);
             let ToBufTokens { destructure, body } = impl_to_unnamed_fields(unnamed_fields);
@@ -65,23 +62,24 @@ pub(super) fn impl_derive_struct(
 
             FunctionBodies {
                 from_function_body: quote! {
-                    Ok(Self(#from_body))
+                    Ok(#struct_name(#from_body))
                 },
                 to_function_body: quote! {
-                    let Self(#destructure) = self;
+                    let #struct_name(#destructure) = self;
 
                     #body
                 },
                 approx_size_function_body: quote! {
-                     let Self(#destructure) = self;
+                     let #struct_name(#destructure) = self;
 
                     #approx_size_body
                 },
             }
         }
+
         Fields::Unit => FunctionBodies {
             from_function_body: quote! {
-                Ok(Self)
+                Ok(#struct_name)
             },
             to_function_body: TokenStream::new(),
             approx_size_function_body: quote! {
@@ -95,7 +93,17 @@ pub(super) fn impl_derive_struct(
     quote! {
         impl #impl_generics serbytes::prelude::SerBytes for #struct_name #ty_generics #where_clause{
             fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
-                #from_function_body
+                let mut inner = || {
+                    #from_function_body
+                };
+
+                inner().map_err(|read_error: serbytes::prelude::ReadError| {
+                    serbytes::prelude::ReadError::new(
+                        read_error.specific_error.clone(),
+                        stringify!(#struct_name).into(),
+                        Some(read_error),
+                    )
+                })
             }
 
             fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {

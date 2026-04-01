@@ -1,8 +1,6 @@
 use crate::bytebuffer;
-use crate::bytebuffer::{
-    ReadByteBufferRefMut, ReadError, WriteByteBufferOwned,
-};
-use crate::prelude::{from_buf, SerBytes};
+use crate::bytebuffer::{ReadByteBufferRefMut, ReadError, WriteByteBufferOwned};
+use crate::prelude::{SerBytes, SpecificError, from_buf};
 pub mod hashmap;
 
 impl<S: SerBytes> SerBytes for Vec<S> {
@@ -39,11 +37,26 @@ impl<S: SerBytes> SerBytes for Vec<S> {
 
 impl SerBytes for String {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let len = u16::from_buf(buf)? as usize;
-        let bytes = buf.read_bytes_with_err_msg(len, format!("bytes for string; {} bytes", len))?;
+        fn inner(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<String> {
+            let len = u16::from_buf(buf)? as usize;
+            let bytes = buf.read_bytes(len)?;
 
-        String::from_utf8(bytes.to_vec())
-            .map_err(|_| ReadError::new("invalid utf8 for string".into()))
+            String::from_utf8(bytes.to_vec()).map_err(|_| {
+                ReadError::new(
+                    SpecificError::Other("Invalid utf8".into()),
+                    "Validate utf8".into(),
+                    None,
+                )
+            })
+        }
+
+        inner(buf).map_err(|read_error| {
+            ReadError::new(
+                read_error.specific_error.clone(),
+                "String".into(),
+                Some(read_error),
+            )
+        })
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {

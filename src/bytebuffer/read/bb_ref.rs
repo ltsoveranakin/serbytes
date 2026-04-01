@@ -1,5 +1,5 @@
 use crate::bytebuffer::read::read_macro::read_ref_ty;
-use crate::bytebuffer::{BBReadResult, ReadError};
+use crate::bytebuffer::{BBReadResult, ReadError, SpecificError};
 use std::ops::Index;
 
 pub struct ReadByteBufferRefMut<'a> {
@@ -19,7 +19,11 @@ impl<'a> ReadByteBufferRefMut<'a> {
 
     pub fn read_bit(&mut self) -> BBReadResult<u8> {
         if *self.index >= self.buf.len() {
-            return Err(ReadError::new("read bit out of index".into()));
+            return Err(ReadError::new(
+                SpecificError::SingleBit,
+                "Single Bit".into(),
+                None,
+            ));
         }
 
         let bit = self.buf.index(*self.index) >> (7 - *self.bit_index) & 1;
@@ -55,7 +59,11 @@ impl<'a> ReadByteBufferRefMut<'a> {
 
     pub fn read_remaining_bits(&mut self) -> BBReadResult<u8> {
         if *self.bit_index == 8 {
-            return Err(ReadError::new("remaining bits".into()));
+            return Err(ReadError::new(
+                SpecificError::RemainingBits,
+                "Remaining Bits".into(),
+                None,
+            ));
         }
 
         let mask = 0xFF >> *self.bit_index;
@@ -71,33 +79,35 @@ impl<'a> ReadByteBufferRefMut<'a> {
         Ok(self.read_bit()? == 1)
     }
 
-    pub(crate) fn read_bytes_with_err_msg(
-        &mut self,
-        size: usize,
-        message: String,
-    ) -> BBReadResult<&[u8]> {
-        if !self.has_bytes_remaining(size) {
-            Err(ReadError::new(format!("Error reading: {}", message)))
-        } else {
-            self.flush_bits();
-            let index = *self.index;
-
-            *self.index += size;
-
-            let slice = &self.buf[index..(index + size)];
-            Ok(slice)
-        }
-    }
-
     pub fn read_bytes(&mut self, size: usize) -> BBReadResult<&[u8]> {
-        self.read_bytes_with_err_msg(size, format!("bytes of size {}", size))
+        let (has_enough_bytes, remaining_bytes) = self.has_bytes_remaining(size);
+
+        if !has_enough_bytes {
+            return Err(ReadError::new(
+                SpecificError::Bytes {
+                    remaining_bytes,
+                    got: size,
+                },
+                "Read Bytes".into(),
+                None,
+            ));
+        }
+
+        self.flush_bits();
+        let index = *self.index;
+
+        *self.index += size;
+
+        let slice = &self.buf[index..(index + size)];
+        Ok(slice)
     }
 
     pub fn read_u8(&mut self) -> BBReadResult<u8> {
         self.flush_bits();
-        let byte = *self.buf.get(*self.index).ok_or_else(|| ReadError {
-            message: "u8".into(),
-        })?;
+        let byte = *self
+            .buf
+            .get(*self.index)
+            .ok_or_else(|| ReadError::new(SpecificError::U8, "u8".into(), None))?;
 
         *self.index += 1;
 
@@ -121,7 +131,8 @@ impl<'a> ReadByteBufferRefMut<'a> {
     read_ref_ty!(f32, read_f32, 4);
     read_ref_ty!(f64, read_f64, 8);
 
-    pub(super) fn has_bytes_remaining(&self, remaining: usize) -> bool {
-        self.buf.len() - *self.index >= remaining
+    pub(super) fn has_bytes_remaining(&self, remaining: usize) -> (bool, usize) {
+        let rem = self.buf.len() - *self.index;
+        (rem >= remaining, rem)
     }
 }

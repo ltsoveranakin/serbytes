@@ -117,7 +117,7 @@ pub(super) fn impl_derive_enum(
                     #(#from_buf_match_tokens)*
 
                     _ => {
-                        Err(serbytes::prelude::ReadError::new(format!("Error reading: enum index, invalid index read; got: {}", index)))
+                        Err(serbytes::prelude::ReadError::new(serbytes::prelude::SpecificError::Other("Enum index".into()), stringify!(#enum_name).into(), None))
                     }
                 }
             }

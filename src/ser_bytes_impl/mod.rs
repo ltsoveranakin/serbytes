@@ -111,10 +111,10 @@ where
     }
 }
 
-impl<S, E> SerBytes for Result<S, E>
+impl<'a, S, E> SerBytes for Result<S, E>
 where
     S: SerBytes,
-    E: From<ReadError>,
+    E: From<ReadError<'a>>,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where

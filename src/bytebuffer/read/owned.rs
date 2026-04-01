@@ -38,8 +38,7 @@ impl ReadByteBufferOwned {
 
     pub fn read_bytes_to_vec(&mut self, count: usize) -> BBReadResult<Vec<u8>> {
         let mut rbb_ref = self.rbb_ref_mut();
-        let bytes =
-            rbb_ref.read_bytes_with_err_msg(count, format!("bytes to vec; len: {}", count))?;
+        let bytes = rbb_ref.read_bytes(count)?;
 
         Ok(bytes.to_vec())
     }

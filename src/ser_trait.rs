@@ -1,5 +1,5 @@
 use crate::bytebuffer::{
-    BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned,
+    BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, ReadError, WriteByteBufferOwned,
 };
 use bytes::Bytes;
 use std::io::ErrorKind;
@@ -61,13 +61,13 @@ pub trait SerBytes {
         0
     }
 
-    fn from_file_path(path: impl AsRef<Path>) -> BBReadResult<Self>
+    fn from_file_path<'a>(path: impl AsRef<Path>) -> Result<Self, FromFileError<'a>>
     where
         Self: Sized,
     {
         let buf = fs::read(path)?;
 
-        Self::from_vec(buf)
+        Self::from_vec(buf).map_err(|read_error| FromFileError::ReadError(read_error))
     }
 
     fn write_to_file_path(&self, path: impl AsRef<Path>) -> io::Result<()> {
@@ -94,3 +94,14 @@ pub trait SerBytes {
 /// Should never be implemented on vectors, maps, enums (unless all enum variants have the exact same size)
 
 pub trait SerBytesStaticSized: SerBytes {}
+
+pub enum FromFileError<'a> {
+    ReadError(ReadError<'a>),
+    IOError(io::Error),
+}
+
+impl<'a> From<io::Error> for FromFileError<'a> {
+    fn from(value: io::Error) -> Self {
+        Self::IOError(value)
+    }
+}
