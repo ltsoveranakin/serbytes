@@ -1,6 +1,7 @@
 use crate::bytebuffer::{
     BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, ReadError, WriteByteBufferOwned,
 };
+#[cfg(feature = "bytes")]
 use bytes::Bytes;
 use std::io::ErrorKind;
 use std::path::Path;
@@ -40,7 +41,8 @@ pub trait SerBytes {
         buf
     }
 
-    fn to_bytes(&self) -> Bytes {
+    #[cfg(feature = "bytes")]
+    fn to_bytes_type(&self) -> Bytes {
         Bytes::from(self.to_bb().into_vec())
     }
 
@@ -61,6 +63,12 @@ pub trait SerBytes {
         0
     }
 
+    /// Loads and deserializes data from a given file path.
+    ///
+    /// Errors if it was unable to read bytes from the file.
+    ///
+    /// Errors if deserialization fails.
+
     fn from_file_path<'a>(path: impl AsRef<Path>) -> Result<Self, FromFileError<'a>>
     where
         Self: Sized,
@@ -69,6 +77,15 @@ pub trait SerBytes {
 
         Self::from_vec(buf).map_err(|read_error| FromFileError::ReadError(read_error))
     }
+
+    /// Serializes and writes data to a given file path.
+    /// If no parent directory exists, all necessary directories are created.
+    ///
+    /// Errors if it's unable to determine if a parent directory exists.
+    ///
+    /// Errors if an invalid path is given (a file path with no parent).
+    ///
+    /// Errors if it was unable to create all needed parent directories.
 
     fn write_to_file_path(&self, path: impl AsRef<Path>) -> io::Result<()> {
         if !fs::exists(&path)? {
