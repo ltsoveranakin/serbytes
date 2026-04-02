@@ -4,13 +4,8 @@ macro_rules! read_ref_ty {
         #[doc = concat!("If there are not at least ", stringify!($size), " bytes in the buffer, it will return Err")]
         pub fn $call(&mut self) -> crate::bytebuffer::BBReadResult<$t> {
             use byteorder::ByteOrder;
-            use paste::paste;
 
-            let bytes = crate::bytebuffer::ReadByteBufferRefMut::read_bytes(self, $size).map_err(|read_error| {
-                paste! {
-                    crate::bytebuffer::ReadError::new_parent(read_error, stringify!($t))
-                }
-            })?;
+            let bytes = crate::bytebuffer::WithParent::with_parent(crate::bytebuffer::ReadByteBufferRefMut::read_bytes(self, $size), stringify!($t))?;
 
             Ok(byteorder::BigEndian::$call(bytes))
         }

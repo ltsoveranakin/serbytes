@@ -1,4 +1,4 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
+use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
 
 pub trait CurrentVersion {
@@ -23,13 +23,19 @@ where
     where
         Self: Sized,
     {
-        let version = V::from_buf(buf)?;
-        let data = version.get_data_from_buf(buf)?;
+        let inner = |buf: &mut ReadByteBufferRefMut| {
+            let version = V::from_buf(buf)?;
+            let data = version.get_data_from_buf(buf)?;
 
-        Ok(Self { data, version })
+            Ok(Self { data, version })
+        };
+
+        inner(buf).with_parent("VersioningWrapper")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        buf.reserve(self.version.approx_size() + self.data.approx_size());
+
         self.version.to_buf(buf);
         self.data.to_buf(buf);
     }

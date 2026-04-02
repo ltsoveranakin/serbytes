@@ -11,17 +11,17 @@ pub use owned::*;
 #[derive(Debug, Clone)]
 pub enum SpecificError<'a> {
     U8,
-    U16,
-    U32,
-    U64,
-    U128,
+    // U16,
+    // U32,
+    // U64,
+    // U128,
     I8,
-    I16,
-    I32,
-    I64,
-    I128,
-    F32,
-    F64,
+    // I16,
+    // I32,
+    // I64,
+    // I128,
+    // F32,
+    // F64,
     Bytes { remaining_bytes: usize, got: usize },
     Bool,
     SingleBit,
@@ -78,14 +78,12 @@ impl<'a> Display for ReadError<'a> {
     }
 }
 
-// impl From<ReadError> for io::Error {
-//     fn from(_: ReadError) -> Self {
-//         ErrorKind::UnexpectedEof.into()
-//     }
-// }
-//
-// impl From<io::Error> for ReadError {
-//     fn from(value: io::Error) -> Self {
-//         Self::new(value.to_string())
-//     }
-// }
+pub trait WithParent<'a> {
+    fn with_parent(self, of: impl Into<Cow<'a, str>>) -> Self;
+}
+
+impl<'a, T> WithParent<'a> for Result<T, ReadError<'a>> {
+    fn with_parent(self, of: impl Into<Cow<'a, str>>) -> Self {
+        self.map_err(|read_error| read_error.new_parent(of))
+    }
+}

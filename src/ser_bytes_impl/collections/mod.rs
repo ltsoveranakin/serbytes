@@ -1,18 +1,22 @@
 use crate::bytebuffer;
-use crate::bytebuffer::{ReadByteBufferRefMut, ReadError, WriteByteBufferOwned};
+use crate::bytebuffer::{ReadByteBufferRefMut, ReadError, WithParent, WriteByteBufferOwned};
 use crate::prelude::{SerBytes, SpecificError, from_buf};
 pub mod hashmap;
 
 impl<S: SerBytes> SerBytes for Vec<S> {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let vec_len = u16::from_buf(buf)? as usize;
-        let mut vec = Vec::with_capacity(vec_len);
+        let inner = |buf: &mut ReadByteBufferRefMut| {
+            let vec_len = u16::from_buf(buf)? as usize;
+            let mut vec = Vec::with_capacity(vec_len);
 
-        for _ in 0..vec_len {
-            vec.push(from_buf(buf)?);
-        }
+            for _ in 0..vec_len {
+                vec.push(from_buf(buf)?);
+            }
 
-        Ok(vec)
+            Ok(vec)
+        };
+
+        inner(buf).with_parent("Vec")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
@@ -37,7 +41,7 @@ impl<S: SerBytes> SerBytes for Vec<S> {
 
 impl SerBytes for String {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        fn inner(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<String> {
+        let inner = |buf: &mut ReadByteBufferRefMut| {
             let len = u16::from_buf(buf)? as usize;
             let bytes = buf.read_bytes(len)?;
 
@@ -48,9 +52,9 @@ impl SerBytes for String {
                     None,
                 )
             })
-        }
+        };
 
-        inner(buf).map_err(|read_error| read_error.new_parent("String"))
+        inner(buf).with_parent("String")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {

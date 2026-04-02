@@ -149,5 +149,3 @@ where
         }
     }
 }
-
-impl<S> SerBytesStaticSized for Option<S> where S: SerBytesStaticSized {}

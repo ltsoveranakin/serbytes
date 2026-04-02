@@ -2,8 +2,8 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 use crate::bytebuffer;
-use crate::bytebuffer::{ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::{from_buf, SerBytes};
+use crate::bytebuffer::{ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
+use crate::prelude::{SerBytes, from_buf};
 
 impl<K, V> SerBytes for HashMap<K, V>
 where
@@ -11,17 +11,21 @@ where
     V: SerBytes,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let len = u16::from_buf(buf)? as usize;
-        let mut map = Self::with_capacity(len);
+        let inner = |buf: &mut ReadByteBufferRefMut| {
+            let len = u16::from_buf(buf)? as usize;
+            let mut map = Self::with_capacity(len);
 
-        for _ in 0..len {
-            let key = from_buf(buf)?;
-            let value = from_buf(buf)?;
+            for _ in 0..len {
+                let key = from_buf(buf)?;
+                let value = from_buf(buf)?;
 
-            map.insert(key, value);
-        }
+                map.insert(key, value);
+            }
 
-        Ok(map)
+            Ok(map)
+        };
+
+        inner(buf).with_parent("HashMap")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
@@ -50,14 +54,18 @@ where
     K: SerBytes + Eq + Hash,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let len = u16::from_buf(buf)?;
-        let mut set = HashSet::with_capacity(len as usize);
+        let inner = |buf: &mut ReadByteBufferRefMut| {
+            let len = u16::from_buf(buf)?;
+            let mut set = HashSet::with_capacity(len as usize);
 
-        for _ in 0..len {
-            set.insert(from_buf(buf)?);
-        }
+            for _ in 0..len {
+                set.insert(from_buf(buf)?);
+            }
 
-        Ok(set)
+            Ok(set)
+        };
+
+        inner(buf).with_parent("HashSet")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
