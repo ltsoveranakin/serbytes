@@ -7,6 +7,8 @@ use std::io::ErrorKind;
 use std::path::Path;
 use std::{fs, io};
 
+pub type FromFileResult<'a, T> = Result<T, FromFileError<'a>>;
+
 pub trait SerBytes {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
@@ -69,7 +71,7 @@ pub trait SerBytes {
     ///
     /// Errors if deserialization fails.
 
-    fn from_file_path<'a>(path: impl AsRef<Path>) -> Result<Self, FromFileError<'a>>
+    fn from_file_path<'a>(path: impl AsRef<Path>) -> FromFileResult<'a, Self>
     where
         Self: Sized,
     {
