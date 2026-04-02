@@ -1,10 +1,10 @@
-use crate::derive::shared::FunctionBodies;
 use crate::derive::shared::named_fields::{
     ToBufTokens, impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields,
 };
 use crate::derive::shared::unnamed_fields::{
     impl_approx_size_unnamed_fields, impl_from_unnamed_fields, impl_to_unnamed_fields,
 };
+use crate::derive::shared::{FunctionBodies, impl_size_hint};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::{DataStruct, Fields, Generics};
@@ -20,11 +20,13 @@ pub(super) fn impl_derive_struct(
         from_function_body,
         to_function_body,
         approx_size_function_body,
+        size_hint_function_body,
     } = match &fields {
         Fields::Named(named_fields) => {
             let from_body = impl_from_named_fields(named_fields);
             let ToBufTokens { destructure, body } = impl_to_named_fields(named_fields);
             let approx_size_body = impl_approx_size_named_fields(named_fields);
+            let size_hint_function_body = impl_size_hint(&named_fields.named);
 
             let from_function_body = quote! {
                 Ok(#struct_name {
@@ -52,6 +54,7 @@ pub(super) fn impl_derive_struct(
                 from_function_body,
                 to_function_body,
                 approx_size_function_body,
+                size_hint_function_body,
             }
         }
 
@@ -59,6 +62,7 @@ pub(super) fn impl_derive_struct(
             let from_body = impl_from_unnamed_fields(unnamed_fields);
             let ToBufTokens { destructure, body } = impl_to_unnamed_fields(unnamed_fields);
             let approx_size_body = impl_approx_size_unnamed_fields(unnamed_fields);
+            let size_hint_function_body = impl_size_hint(&unnamed_fields.unnamed);
 
             FunctionBodies {
                 from_function_body: quote! {
@@ -74,6 +78,7 @@ pub(super) fn impl_derive_struct(
 
                     #approx_size_body
                 },
+                size_hint_function_body,
             }
         }
 
@@ -83,6 +88,9 @@ pub(super) fn impl_derive_struct(
             },
             to_function_body: TokenStream::new(),
             approx_size_function_body: quote! {
+                0
+            },
+            size_hint_function_body: quote! {
                 0
             },
         },
@@ -108,7 +116,7 @@ pub(super) fn impl_derive_struct(
             where
                 Self: Sized,
             {
-                0
+                #size_hint_function_body
             }
 
             fn approx_size(&self) -> usize {

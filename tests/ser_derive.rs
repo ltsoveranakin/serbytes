@@ -32,6 +32,14 @@ fn test_struct_derive() {
     let total_size = f1_size + f2_size + f3_size;
 
     assert_eq!(total_size, b.approx_size());
+
+    let f1_size_h = String::size_hint();
+    let f2_size_h = u8::size_hint();
+    let f3_size_h = u32::size_hint();
+
+    let total_size_h = f1_size_h + f2_size_h + f3_size_h;
+
+    assert_eq!(total_size_h, Basic::size_hint());
 }
 
 #[test]

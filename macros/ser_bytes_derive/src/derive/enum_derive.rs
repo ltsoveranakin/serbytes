@@ -26,6 +26,7 @@ pub(super) fn impl_derive_enum(
             from_function_body,
             to_function_body,
             approx_size_function_body,
+            ..
         } = match fields {
             Fields::Named(named_fields) => {
                 let from_fields_body = impl_from_named_fields(named_fields);
@@ -61,6 +62,7 @@ pub(super) fn impl_derive_enum(
                     from_function_body,
                     to_function_body,
                     approx_size_function_body,
+                    size_hint_function_body: (),
                 }
             }
             Fields::Unnamed(unnamed_fields) => {
@@ -97,6 +99,7 @@ pub(super) fn impl_derive_enum(
                     from_function_body,
                     to_function_body,
                     approx_size_function_body,
+                    size_hint_function_body: (),
                 }
             }
             Fields::Unit => impl_unit_fields(ident, index),
@@ -144,7 +147,7 @@ pub(super) fn impl_derive_enum(
     }
 }
 
-pub(super) fn impl_unit_fields(variant_name: &Ident, index: u8) -> FunctionBodies {
+pub(super) fn impl_unit_fields(variant_name: &Ident, index: u8) -> FunctionBodies<()> {
     let from_function_body = quote! {
         #index => {
             Ok(Self::#variant_name)
@@ -167,5 +170,6 @@ pub(super) fn impl_unit_fields(variant_name: &Ident, index: u8) -> FunctionBodie
         from_function_body,
         to_function_body,
         approx_size_function_body,
+        size_hint_function_body: (),
     }
 }
