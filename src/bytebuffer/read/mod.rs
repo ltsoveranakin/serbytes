@@ -28,6 +28,7 @@ pub enum SpecificError<'a> {
     Bool,
     SingleBit,
     RemainingBits,
+    EnumOrdinal,
     Other(Cow<'a, str>),
 }
 

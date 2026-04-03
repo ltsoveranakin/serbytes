@@ -115,9 +115,9 @@ pub(super) fn impl_derive_enum(
     quote! {
         impl #impl_generics serbytes::prelude::SerBytes for #enum_name #ty_generics #where_clause{
             fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
-                let index = u8::from_buf(buf)?;
-
                 let mut inner = || {
+                    let index = serbytes::prelude::WithParent::with_parent(u8::from_buf(buf), stringify!(#enum_name))?;
+
                     match index {
                         #(#from_buf_match_tokens)*
 

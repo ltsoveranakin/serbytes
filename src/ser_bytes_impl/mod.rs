@@ -13,9 +13,12 @@ pub use byte_tag::*;
 pub use json_like::*;
 pub use may_not_exist::*;
 pub use skip_ser::*;
+use std::cmp::Ordering;
 pub use versioning_wrapper::*;
 
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, ReadError, WriteByteBufferOwned};
+use crate::bytebuffer::{
+    BBReadResult, ReadByteBufferRefMut, ReadError, SpecificError, WithParent, WriteByteBufferOwned,
+};
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 
 use crate::ser_bytes_impl::ser_bytes_impl_macro::ser_data_impl;
@@ -147,5 +150,36 @@ where
             Ok(s) => s.approx_size(),
             Err(_) => S::size_hint(),
         }
+    }
+}
+
+impl SerBytes for Ordering {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        let ord_int = u8::from_buf(buf).with_parent("Ordering")?;
+
+        let ord = match ord_int {
+            0 => Self::Less,
+
+            1 => Self::Equal,
+
+            2 => Self::Greater,
+
+            _ => return Err(ReadError::new(SpecificError::EnumOrdinal, "Ordering", None)),
+        };
+
+        Ok(ord)
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        let ord_int = match self {
+            Self::Less => 0,
+            Self::Equal => 1,
+            Self::Greater => 2,
+        };
+
+        u8::to_buf(&ord_int, buf);
     }
 }
