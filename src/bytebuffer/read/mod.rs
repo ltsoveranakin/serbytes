@@ -8,6 +8,8 @@ mod read_macro;
 pub use bb_ref::*;
 pub use owned::*;
 
+pub type BBReadResult<T> = Result<T, ReadError<'static>>;
+
 #[derive(Debug, Clone)]
 pub enum SpecificError<'a> {
     U8,
@@ -29,6 +31,8 @@ pub enum SpecificError<'a> {
     Other(Cow<'a, str>),
 }
 
+/// An error that represents an inability to read or deserialize a type in some shape or form
+
 #[derive(Debug, Clone)]
 pub struct ReadError<'a> {
     /// The specific error generated from being deserialized, this is the value of the individual bytebuffer fail
@@ -47,10 +51,14 @@ pub struct ReadError<'a> {
 }
 
 impl<'a> ReadError<'a> {
-    pub fn new(specific_error: SpecificError<'a>, of: Cow<'a, str>, child: Option<Self>) -> Self {
+    pub fn new(
+        specific_error: SpecificError<'a>,
+        of: impl Into<Cow<'a, str>>,
+        child: Option<Self>,
+    ) -> Self {
         Self {
             specific_error,
-            of,
+            of: of.into(),
             child: child.map(|child| Box::new(child)),
         }
     }
@@ -59,8 +67,6 @@ impl<'a> ReadError<'a> {
         Self::new(self.specific_error.clone(), of.into(), Some(self))
     }
 }
-
-pub type BBReadResult<T> = Result<T, ReadError<'static>>;
 
 impl<'a> Display for ReadError<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -85,5 +91,13 @@ pub trait WithParent<'a> {
 impl<'a, T> WithParent<'a> for Result<T, ReadError<'a>> {
     fn with_parent(self, of: impl Into<Cow<'a, str>>) -> Self {
         self.map_err(|read_error| read_error.new_parent(of))
+    }
+}
+
+const DEFAULT_STR: &str = "Default";
+
+impl<'a> Default for ReadError<'a> {
+    fn default() -> Self {
+        Self::new(SpecificError::Other(DEFAULT_STR.into()), DEFAULT_STR, None)
     }
 }

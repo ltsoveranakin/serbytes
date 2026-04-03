@@ -23,14 +23,14 @@ where
     where
         Self: Sized,
     {
-        let inner = |buf: &mut ReadByteBufferRefMut| {
+        let mut inner = || {
             let version = V::from_buf(buf)?;
             let data = version.get_data_from_buf(buf)?;
 
             Ok(Self { data, version })
         };
 
-        inner(buf).with_parent("VersioningWrapper")
+        inner().with_parent("VersioningWrapper")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {

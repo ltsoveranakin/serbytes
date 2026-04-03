@@ -19,11 +19,7 @@ impl<'a> ReadByteBufferRefMut<'a> {
 
     pub fn read_bit(&mut self) -> BBReadResult<u8> {
         if *self.index >= self.buf.len() {
-            return Err(ReadError::new(
-                SpecificError::SingleBit,
-                "Single Bit".into(),
-                None,
-            ));
+            return Err(ReadError::new(SpecificError::SingleBit, "Single Bit", None));
         }
 
         let bit = self.buf.index(*self.index) >> (7 - *self.bit_index) & 1;
@@ -61,7 +57,7 @@ impl<'a> ReadByteBufferRefMut<'a> {
         if *self.bit_index == 8 {
             return Err(ReadError::new(
                 SpecificError::RemainingBits,
-                "Remaining Bits".into(),
+                "Remaining Bits",
                 None,
             ));
         }
@@ -88,7 +84,7 @@ impl<'a> ReadByteBufferRefMut<'a> {
                     remaining_bytes,
                     got: size,
                 },
-                "Read Bytes".into(),
+                "Read Bytes",
                 None,
             ));
         }
@@ -107,7 +103,7 @@ impl<'a> ReadByteBufferRefMut<'a> {
         let byte = *self
             .buf
             .get(*self.index)
-            .ok_or_else(|| ReadError::new(SpecificError::U8, "u8".into(), None))?;
+            .ok_or_else(|| ReadError::new(SpecificError::U8, "u8", None))?;
 
         *self.index += 1;
 

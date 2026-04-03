@@ -5,7 +5,7 @@ pub mod hashmap;
 
 impl<S: SerBytes> SerBytes for Vec<S> {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let inner = |buf: &mut ReadByteBufferRefMut| {
+        let mut inner = || {
             let vec_len = u16::from_buf(buf)? as usize;
             let mut vec = Vec::with_capacity(vec_len);
 
@@ -16,7 +16,7 @@ impl<S: SerBytes> SerBytes for Vec<S> {
             Ok(vec)
         };
 
-        inner(buf).with_parent("Vec")
+        inner().with_parent("Vec")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
@@ -41,20 +41,20 @@ impl<S: SerBytes> SerBytes for Vec<S> {
 
 impl SerBytes for String {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let inner = |buf: &mut ReadByteBufferRefMut| {
+        let mut inner = || {
             let len = u16::from_buf(buf)? as usize;
             let bytes = buf.read_bytes(len)?;
 
             String::from_utf8(bytes.to_vec()).map_err(|_| {
                 ReadError::new(
                     SpecificError::Other("Invalid utf8".into()),
-                    "Validate utf8".into(),
+                    "Validate utf8",
                     None,
                 )
             })
         };
 
-        inner(buf).with_parent("String")
+        inner().with_parent("String")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {

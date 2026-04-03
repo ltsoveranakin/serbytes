@@ -7,8 +7,6 @@ use std::io::ErrorKind;
 use std::path::Path;
 use std::{fs, io};
 
-pub type FromFileResult<'a, T> = Result<T, FromFileError<'a>>;
-
 pub trait SerBytes {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
@@ -122,5 +120,13 @@ pub enum FromFileError<'a> {
 impl<'a> From<io::Error> for FromFileError<'a> {
     fn from(value: io::Error) -> Self {
         Self::IOError(value)
+    }
+}
+
+pub type FromFileResult<'a, T> = Result<T, FromFileError<'a>>;
+
+impl<'a> From<ReadError<'a>> for FromFileError<'a> {
+    fn from(value: ReadError<'a>) -> Self {
+        Self::ReadError(value)
     }
 }

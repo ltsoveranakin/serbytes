@@ -11,7 +11,7 @@ where
     V: SerBytes,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let inner = |buf: &mut ReadByteBufferRefMut| {
+        let mut inner = || {
             let len = u16::from_buf(buf)? as usize;
             let mut map = Self::with_capacity(len);
 
@@ -25,7 +25,7 @@ where
             Ok(map)
         };
 
-        inner(buf).with_parent("HashMap")
+        inner().with_parent("HashMap")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
@@ -54,7 +54,7 @@ where
     K: SerBytes + Eq + Hash,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let inner = |buf: &mut ReadByteBufferRefMut| {
+        let mut inner = || {
             let len = u16::from_buf(buf)?;
             let mut set = HashSet::with_capacity(len as usize);
 
@@ -65,7 +65,7 @@ where
             Ok(set)
         };
 
-        inner(buf).with_parent("HashSet")
+        inner().with_parent("HashSet")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {

@@ -101,11 +101,11 @@ pub(super) fn impl_derive_struct(
     quote! {
         impl #impl_generics serbytes::prelude::SerBytes for #struct_name #ty_generics #where_clause{
             fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
-                let inner = |buf: &mut serbytes::prelude::ReadByteBufferRefMut| {
+                let mut inner = || {
                     #from_function_body
                 };
 
-                serbytes::prelude::WithParent::with_parent(inner(buf), stringify!(#struct_name))
+                serbytes::prelude::WithParent::with_parent(inner(), stringify!(#struct_name))
             }
 
             fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {

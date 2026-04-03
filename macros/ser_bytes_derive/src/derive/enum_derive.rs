@@ -116,13 +116,18 @@ pub(super) fn impl_derive_enum(
         impl #impl_generics serbytes::prelude::SerBytes for #enum_name #ty_generics #where_clause{
             fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
                 let index = u8::from_buf(buf)?;
-                match index {
-                    #(#from_buf_match_tokens)*
 
-                    _ => {
-                        Err(serbytes::prelude::ReadError::new(serbytes::prelude::SpecificError::Other("Enum index".into()), stringify!(#enum_name).into(), None))
+                let mut inner = || {
+                    match index {
+                        #(#from_buf_match_tokens)*
+
+                        _ => {
+                            Err(serbytes::prelude::ReadError::new(serbytes::prelude::SpecificError::Other("Enum index out of bounds".into()), stringify!(#enum_name), None))
+                        }
                     }
-                }
+                };
+
+                serbytes::prelude::WithParent::with_parent(inner(), stringify!(#enum_name))
             }
 
             fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
