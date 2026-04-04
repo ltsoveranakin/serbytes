@@ -10,7 +10,7 @@ pub trait CurrentVersion {
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct VersioningWrapper<D, V> {
-    data: D,
+    pub inner: D,
     version: V,
 }
 
@@ -27,17 +27,20 @@ where
             let version = V::from_buf(buf)?;
             let data = version.get_data_from_buf(buf)?;
 
-            Ok(Self { data, version })
+            Ok(Self {
+                inner: data,
+                version,
+            })
         };
 
         inner().with_parent("VersioningWrapper")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        buf.reserve(self.version.approx_size() + self.data.approx_size());
+        buf.reserve(self.version.approx_size() + self.inner.approx_size());
 
         self.version.to_buf(buf);
-        self.data.to_buf(buf);
+        self.inner.to_buf(buf);
     }
 }
 
@@ -70,20 +73,8 @@ where
 {
     pub fn new(data: D) -> Self {
         Self {
-            data,
+            inner: data,
             version: V::current_version(),
         }
-    }
-
-    pub fn into_inner(self) -> D {
-        self.data
-    }
-
-    pub fn inner(&self) -> &D {
-        &self.data
-    }
-
-    pub fn inner_mut(&mut self) -> &mut D {
-        &mut self.data
     }
 }

@@ -129,7 +129,7 @@ fn test_versioning() {
 
     let data2_deserialized = VersionedData2::from_buf(&mut rbb.rbb_ref_mut())
         .expect("Read versioned data from buffer")
-        .into_inner();
+        .inner;
 
     let cmp_data2 = transform_data1_to_data2(data1);
 
