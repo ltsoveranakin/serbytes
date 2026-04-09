@@ -1,7 +1,7 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
 
-pub trait CurrentVersion {
+pub trait CurrentVersion: SerBytes {
     type Output;
     fn get_data_from_buf(&self, buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self::Output>;
 
@@ -28,7 +28,7 @@ impl<D, V> Eq for VersioningWrapper<D, V> where D: Eq {}
 impl<D, V> SerBytes for VersioningWrapper<D, V>
 where
     D: SerBytes,
-    V: SerBytes + CurrentVersion<Output = D>,
+    V: CurrentVersion<Output = D>,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
@@ -54,20 +54,6 @@ where
         self.inner.to_buf(buf);
     }
 }
-
-// impl<D, V> Deref for VersioningWrapper<D, V> {
-//     type Target = D;
-//
-//     fn deref(&self) -> &Self::Target {
-//         &self.data
-//     }
-// }
-//
-// impl<D, V> DerefMut for VersioningWrapper<D, V> {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.data
-//     }
-// }
 
 impl<D, V> From<D> for VersioningWrapper<D, V>
 where
