@@ -1,7 +1,7 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::{from_buf, SerBytes};
+use crate::prelude::{SerBytes, from_buf};
 use crate::ser_trait::SerBytesStaticSized;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -94,3 +94,21 @@ where
 }
 
 impl<S> SerBytesStaticSized for Box<S> where S: SerBytesStaticSized {}
+
+impl<S> SerBytes for Cell<S>
+where
+    S: SerBytes + Copy,
+{
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Cell::new(S::from_buf(buf)?))
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        self.get().to_buf(buf);
+    }
+}
+
+impl<S> SerBytesStaticSized for Cell<S> where S: SerBytesStaticSized + Copy {}
