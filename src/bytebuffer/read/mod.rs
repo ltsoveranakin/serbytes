@@ -33,21 +33,23 @@ pub enum SpecificError<'a> {
 }
 
 /// An error that represents an inability to read or deserialize a type in some shape or form
+///
+/// Most of the time you can get away with a static lifetime here, it only exists for future proofing and custom implementations
 
 #[derive(Debug, Clone)]
 pub struct ReadError<'a> {
     /// The specific error generated from being deserialized, this is the value of the individual bytebuffer fail
     ///
-    /// For example the bytes of a string.
+    /// For example "Byte array of String".
     pub specific_error: SpecificError<'a>,
     /// The full type name which is being deserialized
     ///
-    /// For example string
+    /// For example "String"
     of: Cow<'a, str>,
     /// If the value being deserialized is a subset of another
     ///
-    /// For example elements of type S in a Vec<S>
-    /// As in, if a Vec<S> fails to deserialized, this field should be Some with the read error of S
+    /// For example elements of type S in a `Vec<S>`
+    /// As in, if a `Vec<S>` fails to be deserialized, this field should be Some with the read error of S
     child: Option<Box<Self>>,
 }
 

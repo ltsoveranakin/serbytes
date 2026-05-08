@@ -112,6 +112,7 @@ pub trait SerBytes {
 
 pub trait SerBytesStaticSized: SerBytes {}
 
+#[derive(Debug)]
 pub enum FromFileError<'a> {
     ReadError(ReadError<'a>),
     IOError(io::Error),
