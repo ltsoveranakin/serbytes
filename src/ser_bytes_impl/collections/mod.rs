@@ -2,42 +2,9 @@ use crate::bytebuffer;
 use crate::bytebuffer::{ReadByteBufferRefMut, ReadError, WithParent, WriteByteBufferOwned};
 use crate::prelude::{SerBytes, SpecificError, from_buf};
 pub mod hashmap;
+pub mod vec_like;
 
-impl<S: SerBytes> SerBytes for Vec<S> {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
-        let mut inner = || {
-            let vec_len = u16::from_buf(buf)? as usize;
-            let mut vec = Vec::with_capacity(vec_len);
-
-            for _ in 0..vec_len {
-                vec.push(from_buf(buf)?);
-            }
-
-            Ok(vec)
-        };
-
-        inner().with_parent("Vec")
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        (self.len() as u16).to_buf(buf);
-
-        for ser_data in self {
-            ser_data.to_buf(buf);
-        }
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        u16::size_hint()
-    }
-
-    fn approx_size(&self) -> usize {
-        u16::size_hint() + (S::size_hint() * self.len())
-    }
-}
+pub use vec_like::*;
 
 impl SerBytes for String {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {

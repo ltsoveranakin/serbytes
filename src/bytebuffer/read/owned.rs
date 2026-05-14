@@ -8,9 +8,12 @@ pub struct ReadByteBufferOwned {
 }
 
 impl ReadByteBufferOwned {
-    pub fn from_vec(vec: Vec<u8>) -> Self {
+    pub fn from_vec<V>(vec: V) -> Self
+    where
+        V: Into<Vec<u8>>,
+    {
         Self {
-            buf: vec,
+            buf: vec.into(),
             index: 0,
             bit_index: 0,
         }

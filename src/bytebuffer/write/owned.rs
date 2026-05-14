@@ -1,5 +1,5 @@
-use crate::bytebuffer::write::write_macro::write_ty;
 use crate::bytebuffer::IndexPointer;
+use crate::bytebuffer::write::write_macro::write_ty;
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 use byteorder::ByteOrder;
 use std::io;
@@ -97,7 +97,7 @@ impl WriteByteBufferOwned {
         let bb = val.to_bb();
 
         let index = self.buf().len();
-
+        // TODO: replace with wbb_ref_mut
         self.buf.extend_from_slice(&bb.buf);
 
         let new_len = self.buf.len();

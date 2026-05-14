@@ -33,4 +33,20 @@ macro_rules! ser_data_impl {
     };
 }
 
-pub(crate) use ser_data_impl;
+macro_rules! ser_data_impl_u {
+    ($t:ty, $call_signature:ident, $byte_size:literal) => {
+        ser_data_impl!($t, $call_signature, $byte_size);
+
+        impl crate::ser_bytes_impl::LengthLike for $t {
+            fn from_usize(us: usize) -> Self {
+                us as Self
+            }
+
+            fn to_usize(self) -> usize {
+                self as usize
+            }
+        }
+    };
+}
+
+pub(crate) use {ser_data_impl, ser_data_impl_u};

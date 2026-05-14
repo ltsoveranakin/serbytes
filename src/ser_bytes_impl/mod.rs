@@ -1,3 +1,4 @@
+mod block;
 mod byte_tag;
 pub mod collections;
 mod deref_types;
@@ -9,7 +10,9 @@ mod ser_bytes_impl_macro;
 mod skip_ser;
 mod versioning_wrapper;
 
+pub use block::*;
 pub use byte_tag::*;
+pub use collections::*;
 pub use json_like::*;
 pub use may_not_exist::*;
 pub use skip_ser::*;
@@ -21,16 +24,16 @@ use crate::bytebuffer::{
 };
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 
-use crate::ser_bytes_impl::ser_bytes_impl_macro::ser_data_impl;
+use crate::ser_bytes_impl::ser_bytes_impl_macro::{ser_data_impl, ser_data_impl_u};
 use std::marker::PhantomData;
 
 ser_data_impl!(bool, bool, 1);
 
-ser_data_impl!(u8, u8, 1);
-ser_data_impl!(u16, u16, 2);
-ser_data_impl!(u32, u32, 4);
-ser_data_impl!(u64, u64, 8);
-ser_data_impl!(u128, u128, 16);
+ser_data_impl_u!(u8, u8, 1);
+ser_data_impl_u!(u16, u16, 2);
+ser_data_impl_u!(u32, u32, 4);
+ser_data_impl_u!(u64, u64, 8);
+ser_data_impl_u!(u128, u128, 16);
 
 ser_data_impl!(i8, i8, 1);
 ser_data_impl!(i16, i16, 2);
@@ -40,6 +43,12 @@ ser_data_impl!(i128, i128, 16);
 
 ser_data_impl!(f32, f32, 4);
 ser_data_impl!(f64, f64, 8);
+
+pub trait LengthLike {
+    fn from_usize(us: usize) -> Self;
+
+    fn to_usize(self) -> usize;
+}
 
 #[inline]
 pub fn from_buf<S>(buf: &mut ReadByteBufferRefMut) -> BBReadResult<S>

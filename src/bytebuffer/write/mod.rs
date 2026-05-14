@@ -29,4 +29,12 @@ where
             _s: PhantomData,
         }
     }
+
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
 }

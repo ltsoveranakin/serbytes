@@ -138,3 +138,50 @@ fn test_versioning() {
         "comparing deserialized data2 to original data",
     );
 }
+
+#[test]
+fn test_block() {
+    let mut wbb = WriteByteBufferOwned::new();
+    let block_data = "Hello".to_string();
+
+    let block = SizedBlock::new(block_data);
+
+    block.to_buf(&mut wbb);
+
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
+    let mut rbuf = rbb.rbb_ref_mut();
+
+    let deser_block = SizedBlock::from_buf(&mut rbuf).unwrap();
+
+    assert_eq!(block, deser_block);
+
+    /// A type that writes more bytes than it reads
+    #[derive(Debug)]
+    struct BadType;
+
+    impl SerBytes for BadType {
+        fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+        where
+            Self: Sized,
+        {
+            buf.read_bytes(10)?;
+
+            Ok(Self)
+        }
+
+        fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+            buf.write_bytes(&[0; 5]);
+        }
+    }
+
+    let mut wbb = WriteByteBufferOwned::new();
+    let bt_block = SizedBlock::new(BadType);
+    bt_block.to_buf(&mut wbb);
+
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
+    let mut rbuf = rbb.rbb_ref_mut();
+
+    let e = SizedBlock::<BadType>::from_buf(&mut rbuf).unwrap_err();
+
+    assert!(matches!(e.specific_error, SpecificError::Bytes { .. }));
+}
