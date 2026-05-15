@@ -1,4 +1,3 @@
-use crate::bytebuffer;
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_bytes_impl::{LengthLike, from_buf};
 use crate::ser_trait::SerBytes;
@@ -12,8 +11,8 @@ where
     ///
     /// Uses a `u16` to determine the amount of bytes to read
     ///
-    /// NOTE: This is incredibly inefficient for a [`Vec`] of `u8` or `i8`, instead use [`U8Vec`] or [`I8Vec`] respectively
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
+    /// NOTE: This is incredibly inefficient for a [`Vec`] of `u8` or `i8`, instead use [`U8Vec`]
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
         let mut inner = || {
             let vec_len = u16::from_buf(buf)? as usize;
             let mut vec = Vec::with_capacity(vec_len);

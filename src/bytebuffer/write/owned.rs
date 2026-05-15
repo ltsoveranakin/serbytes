@@ -94,11 +94,9 @@ impl WriteByteBufferOwned {
     where
         S: SerBytes,
     {
-        let bb = val.to_bb();
-
         let index = self.buf().len();
-        // TODO: replace with wbb_ref_mut
-        self.buf.extend_from_slice(&bb.buf);
+
+        val.to_buf(self);
 
         let new_len = self.buf.len();
 

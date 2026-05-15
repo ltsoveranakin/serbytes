@@ -1,3 +1,5 @@
+extern crate core;
+
 mod bytebuffer;
 
 pub mod prelude;

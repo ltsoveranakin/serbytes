@@ -33,6 +33,8 @@ impl<'a> ReadByteBufferRefMut<'a> {
         Ok(bit)
     }
 
+    /// Resets the bit index to 0 and moves the head over to the next available byte
+
     pub fn flush_bits(&mut self) {
         if *self.bit_index != 0 {
             *self.index += 1;
@@ -41,6 +43,11 @@ impl<'a> ReadByteBufferRefMut<'a> {
     }
 
     pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
+        assert!(
+            count > 0 && count <= 8,
+            "The maximum bits to read must be between 1 and 8 inclusively [1, 8]; Got: {count}"
+        );
+
         let mut bits = 0;
 
         for i in 0..count {

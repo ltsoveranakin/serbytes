@@ -8,10 +8,12 @@ use std::path::Path;
 use std::{fs, io};
 
 pub trait SerBytes {
+    /// Reads and deserializes the type from the provided [`ReadByteBufferRefMut`]
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
         Self: Sized;
 
+    /// Serializes and writes the type to the provided [`WriteByteBufferOwned`]
     fn to_buf(&self, buf: &mut WriteByteBufferOwned);
 
     fn from_vec(vec: Vec<u8>) -> BBReadResult<Self>

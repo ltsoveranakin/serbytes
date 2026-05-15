@@ -1,6 +1,6 @@
 use crate::bytebuffer;
 use crate::bytebuffer::{ReadByteBufferRefMut, ReadError, WithParent, WriteByteBufferOwned};
-use crate::prelude::{SerBytes, SpecificError, from_buf};
+use crate::prelude::{SerBytes, SpecificError};
 pub mod hashmap;
 pub mod vec_like;
 

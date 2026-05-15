@@ -1,4 +1,3 @@
-mod block;
 mod byte_tag;
 pub mod collections;
 mod deref_types;
@@ -7,14 +6,15 @@ pub mod glam;
 mod json_like;
 mod may_not_exist;
 mod ser_bytes_impl_macro;
+mod sized_block;
 mod skip_ser;
 mod versioning_wrapper;
 
-pub use block::*;
 pub use byte_tag::*;
 pub use collections::*;
 pub use json_like::*;
 pub use may_not_exist::*;
+pub use sized_block::*;
 pub use skip_ser::*;
 use std::cmp::Ordering;
 pub use versioning_wrapper::*;
