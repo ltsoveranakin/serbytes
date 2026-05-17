@@ -11,7 +11,7 @@ pub trait CurrentVersion: SerBytes {
 #[derive(Debug, Copy, Clone)]
 pub struct VersioningWrapper<D, V> {
     pub inner: D,
-    version: V,
+    version_read: V,
 }
 
 impl<D, V> SerBytes for VersioningWrapper<D, V>
@@ -29,7 +29,7 @@ where
 
             Ok(Self {
                 inner: data,
-                version,
+                version_read: version,
             })
         };
 
@@ -37,9 +37,9 @@ where
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        buf.reserve(self.version.approx_size() + self.inner.approx_size());
+        buf.reserve(self.version_read.approx_size() + self.inner.approx_size());
 
-        self.version.to_buf(buf);
+        V::current_version().to_buf(buf);
         self.inner.to_buf(buf);
     }
 }
@@ -52,7 +52,7 @@ where
     fn default() -> Self {
         Self {
             inner: D::default(),
-            version: V::current_version(),
+            version_read: V::current_version(),
         }
     }
 }
@@ -84,7 +84,7 @@ where
     pub fn new(data: D) -> Self {
         Self {
             inner: data,
-            version: V::current_version(),
+            version_read: V::current_version(),
         }
     }
 
@@ -92,6 +92,6 @@ where
     where
         V: PartialEq,
     {
-        self.version != V::current_version()
+        self.version_read != V::current_version()
     }
 }
