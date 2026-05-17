@@ -74,4 +74,11 @@ where
             version: V::current_version(),
         }
     }
+
+    pub fn did_update(&self) -> bool
+    where
+        V: PartialEq,
+    {
+        self.version != V::current_version()
+    }
 }
