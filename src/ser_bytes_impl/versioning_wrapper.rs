@@ -8,22 +8,11 @@ pub trait CurrentVersion: SerBytes {
     fn current_version() -> Self;
 }
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct VersioningWrapper<D, V> {
     pub inner: D,
     version: V,
 }
-
-impl<D, V> PartialEq for VersioningWrapper<D, V>
-where
-    D: PartialEq,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.inner == other.inner
-    }
-}
-
-impl<D, V> Eq for VersioningWrapper<D, V> where D: Eq {}
 
 impl<D, V> SerBytes for VersioningWrapper<D, V>
 where
@@ -54,6 +43,30 @@ where
         self.inner.to_buf(buf);
     }
 }
+
+impl<D, V> Default for VersioningWrapper<D, V>
+where
+    D: Default,
+    V: CurrentVersion,
+{
+    fn default() -> Self {
+        Self {
+            inner: D::default(),
+            version: V::current_version(),
+        }
+    }
+}
+
+impl<D, V> PartialEq for VersioningWrapper<D, V>
+where
+    D: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.inner == other.inner
+    }
+}
+
+impl<D, V> Eq for VersioningWrapper<D, V> where D: Eq {}
 
 impl<D, V> From<D> for VersioningWrapper<D, V>
 where
