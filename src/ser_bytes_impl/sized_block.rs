@@ -12,14 +12,14 @@ use std::marker::PhantomData;
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct SizedBlock<S, L = u16> {
     pub inner: S,
-    __len: PhantomData<L>,
+    _len: PhantomData<L>,
 }
 
 impl<S> SizedBlock<S, u16> {
     pub fn new(block_data: S) -> Self {
         Self {
             inner: block_data,
-            __len: PhantomData,
+            _len: PhantomData,
         }
     }
 }
@@ -28,7 +28,7 @@ impl<S, L> SizedBlock<S, L> {
     pub fn new_with_len_type(block_data: S) -> Self {
         Self {
             inner: block_data,
-            __len: PhantomData,
+            _len: PhantomData,
         }
     }
 }
@@ -49,7 +49,7 @@ where
 
             Ok(Self {
                 inner: from_buf(&mut block_buffer.rbb_ref_mut())?,
-                __len: PhantomData,
+                _len: PhantomData,
             })
         };
 
@@ -64,5 +64,14 @@ where
         let data_len = data_index_ptr.len();
 
         buf.write_at_index_pointer(len_index_ptr, &L::from_usize(data_len));
+    }
+}
+
+impl<S, L> Default for SizedBlock<S, L>
+where
+    S: Default,
+{
+    fn default() -> Self {
+        Self::new_with_len_type(S::default())
     }
 }

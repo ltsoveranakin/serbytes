@@ -50,7 +50,7 @@ where
 #[derive(Clone, Debug)]
 pub struct U8Vec<L = u16> {
     pub vec: Vec<u8>,
-    __len: PhantomData<L>,
+    _len: PhantomData<L>,
 }
 
 impl<L> SerBytes for U8Vec<L>
@@ -67,7 +67,7 @@ where
 
             Ok(Self {
                 vec: bytes.to_vec(),
-                __len: PhantomData,
+                _len: PhantomData,
             })
         };
 
@@ -90,7 +90,7 @@ impl<L> U8Vec<L> {
     pub fn from_vec(vec: Vec<u8>) -> Self {
         Self {
             vec,
-            __len: PhantomData,
+            _len: PhantomData,
         }
     }
 }
