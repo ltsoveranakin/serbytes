@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 
 /// A SizedBlock, used to ensure a given piece of data doesn't encroach on the following data in the buffer
 ///
-/// Useful when frequently modifying your data structure
+/// Useful when frequently modifying your data structure especially when combined with [`BBReadResult`], i.e. [`SizedBlock<BBReadResult<SomeTypeThatChanges>>`]
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct SizedBlock<S, L = u16> {
