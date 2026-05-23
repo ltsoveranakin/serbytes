@@ -3,9 +3,7 @@ use crate::bytebuffer::{
 };
 #[cfg(feature = "bytes")]
 use bytes::Bytes;
-use std::io::ErrorKind;
-use std::path::Path;
-use std::{fs, io};
+use std::io;
 
 pub trait SerBytes {
     /// Reads and deserializes the type from the provided [`ReadByteBufferRefMut`]
@@ -57,7 +55,7 @@ pub trait SerBytes {
         0
     }
 
-    /// The approximate size of a type at runtime. Statically sized types when serialized (ie. primitives) should just call Self::size_hint from this function.
+    /// The approximate size of a type at runtime. Statically sized types when serialized (i.e. primitives) should just call Self::size_hint from this function.
     ///
     /// Types that can have varying sizes of serialized data (enums, hashmaps, etc.) should do their best to approximate the size as cheaply as possible
 
@@ -70,11 +68,12 @@ pub trait SerBytes {
     /// Errors if it was unable to read bytes from the file.
     ///
     /// Errors if deserialization fails.
-
+    #[cfg(feature = "fs")]
     fn from_file_path<'a>(path: impl AsRef<Path>) -> FromFileResult<'a, Self>
     where
         Self: Sized,
     {
+        use std::fs;
         let buf = fs::read(path)?;
 
         Self::from_vec(buf).map_err(|read_error| FromFileError::ReadError(read_error))
@@ -88,13 +87,14 @@ pub trait SerBytes {
     /// Errors if an invalid path is given (a file path with no parent).
     ///
     /// Errors if it was unable to create all needed parent directories.
-
+    #[cfg(feature = "fs")]
     fn write_to_file_path(&self, path: impl AsRef<Path>) -> io::Result<()> {
+        use std::fs;
         if !fs::exists(&path)? {
             let parent_dir = if let Some(parent_dir) = path.as_ref().parent() {
                 parent_dir
             } else {
-                return Err(ErrorKind::InvalidFilename.into());
+                return Err(io::ErrorKind::InvalidFilename.into());
             };
 
             fs::create_dir_all(parent_dir)?;

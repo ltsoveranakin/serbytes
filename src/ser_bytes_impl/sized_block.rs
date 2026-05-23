@@ -75,3 +75,9 @@ where
         Self::new_with_len_type(S::default())
     }
 }
+
+impl<S, L> From<S> for SizedBlock<S, L> {
+    fn from(value: S) -> Self {
+        Self::new_with_len_type(value)
+    }
+}
