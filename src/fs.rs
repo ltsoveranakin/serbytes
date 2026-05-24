@@ -1,15 +1,22 @@
 use crate::bytebuffer::ReadError;
 use crate::ser_trait::SerBytes;
+use std::fmt::{Display, Formatter};
 use std::io;
 use std::path::Path;
 
 pub type FromFileResult<'a, T> = Result<T, FromFileError<'a>>;
 
+/// Error returned when trying to read [`SerBytes`] data from a file, it has 2 single tuple variants:
+/// Read error with a [`ReadError`] and IOError with an [`io::Error`]
+///
+/// Check [`ReadError`] for information on the lifetime
 #[derive(Debug)]
 pub enum FromFileError<'a> {
     ReadError(ReadError<'a>),
     IOError(io::Error),
 }
+
+/// Trait relating to filesystem operations on types that implement [`SerBytes`]
 
 pub trait SerBytesFs {
     fn from_file_path<'a>(path: impl AsRef<Path>) -> FromFileResult<'a, Self>
@@ -62,6 +69,20 @@ where
         let wbb = self.to_bb();
 
         fs::write(path, wbb.buf())
+    }
+}
+
+impl<'a> Display for FromFileError<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ReadError(err) => {
+                write!(f, "Error deserializing data {}", err)
+            }
+
+            Self::IOError(err) => {
+                write!(f, "Error reading data from file {}", err)
+            }
+        }
     }
 }
 
