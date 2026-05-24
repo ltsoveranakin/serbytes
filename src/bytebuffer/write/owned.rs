@@ -169,6 +169,4 @@ impl WriteByteBufferOwned {
     pub fn reserve(&mut self, additional: usize) {
         self.buf.reserve(additional);
     }
-
-    // pub fn flush_bits
 }
