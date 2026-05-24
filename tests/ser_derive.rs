@@ -82,7 +82,7 @@ fn test_enum_derive() {
     let b3_size = b3.approx_size();
 
     let total_b1_size = match b1 {
-        Basic::V1 => 0,
+        Basic::V1 => u8::size_hint(),
 
         _ => unreachable!(),
     };
@@ -96,7 +96,9 @@ fn test_enum_derive() {
     };
 
     let total_b3_size = match b3 {
-        Basic::V3(f1, f2, f3) => f1.approx_size() + f2.approx_size() + f3.approx_size(),
+        Basic::V3(f1, f2, f3) => {
+            u8::size_hint() + f1.approx_size() + f2.approx_size() + f3.approx_size()
+        }
 
         _ => unreachable!(),
     };

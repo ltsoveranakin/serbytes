@@ -54,7 +54,7 @@ pub(super) fn impl_derive_enum(
                     Self::#ident {
                         #destructure
                     } => {
-                        #index.approx_size() + #approx_size_body
+                        #approx_size_body
                     }
                 };
 
@@ -144,9 +144,11 @@ pub(super) fn impl_derive_enum(
             }
 
             fn approx_size(&self) -> usize {
-                match self {
+                let content_size = match self {
                     #(#approx_size_match_tokens)*
-                }
+                };
+
+                u8::size_hint() + content_size
             }
         }
     }

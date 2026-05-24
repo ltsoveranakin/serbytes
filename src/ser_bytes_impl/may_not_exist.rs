@@ -2,6 +2,8 @@ use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned
 use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
 
+pub type MayNotExistOrDefault<S> = MayNotExistOrElse<S, DefaultDataProvider>;
+
 pub trait MayNotExistDataProvider<T> {
     fn get_data() -> T;
 }
@@ -38,6 +40,18 @@ where
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         self.inner.to_buf(buf);
     }
+
+    /// Even though the type may not exist, we always write data to the buffer
+    fn size_hint() -> usize
+    where
+        Self: Sized,
+    {
+        S::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        self.inner.approx_size()
+    }
 }
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
@@ -51,8 +65,6 @@ where
         T::default()
     }
 }
-
-pub type MayNotExistOrDefault<S> = MayNotExistOrElse<S, DefaultDataProvider>;
 
 impl<S, F> MayNotExistOrElse<S, F> {
     pub fn into_inner(self) -> S {

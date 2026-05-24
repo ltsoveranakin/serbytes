@@ -23,6 +23,10 @@ where
     {
         S::size_hint()
     }
+
+    fn approx_size(&self) -> usize {
+        S::approx_size(&self)
+    }
 }
 
 impl<S> SerBytesStaticSized for Arc<S> where S: SerBytesStaticSized {}
@@ -44,6 +48,10 @@ where
         Self: Sized,
     {
         S::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        S::approx_size(&self)
     }
 }
 
@@ -69,6 +77,10 @@ where
     {
         S::size_hint()
     }
+
+    fn approx_size(&self) -> usize {
+        S::approx_size(&self.borrow())
+    }
 }
 
 impl<S> SerBytesStaticSized for RefCell<S> where S: SerBytesStaticSized {}
@@ -91,6 +103,10 @@ where
     {
         S::size_hint()
     }
+
+    fn approx_size(&self) -> usize {
+        S::approx_size(&self)
+    }
 }
 
 impl<S> SerBytesStaticSized for Box<S> where S: SerBytesStaticSized {}
@@ -108,6 +124,10 @@ where
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         self.get().to_buf(buf);
+    }
+
+    fn approx_size(&self) -> usize {
+        S::approx_size(&self.get())
     }
 }
 
