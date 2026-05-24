@@ -18,7 +18,7 @@ pub enum FromFileError<'a> {
 
 /// Trait relating to filesystem operations on types that implement [`SerBytes`]
 
-pub trait SerBytesFs {
+pub trait SerBytesFs: SerBytes {
     fn from_file_path<'a>(path: impl AsRef<Path>) -> FromFileResult<'a, Self>
     where
         Self: Sized;
