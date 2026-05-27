@@ -4,6 +4,9 @@ use crate::bytebuffer::{
 #[cfg(feature = "bytes")]
 use bytes::Bytes;
 
+/// [`SerBytes`]
+///
+/// A type that can be both serialized and deserialized from a binary source.
 pub trait SerBytes {
     /// Reads and deserializes the type from the provided [`ReadByteBufferRefMut`]
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
