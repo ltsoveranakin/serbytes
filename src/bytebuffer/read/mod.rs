@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 
-mod bb_ref;
+mod bb_ref_mut;
 mod owned;
 mod read_macro;
 
-pub use bb_ref::*;
+pub use bb_ref_mut::*;
 pub use owned::*;
 
 pub type BBReadResult<T> = Result<T, ReadError<'static>>;
