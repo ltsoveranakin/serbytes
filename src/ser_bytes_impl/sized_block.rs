@@ -66,15 +66,15 @@ where
         buf.write_at_index_pointer(len_index_ptr, &L::from_usize(data_len));
     }
 
-    fn approx_size(&self) -> usize {
-        L::size_hint() + self.inner.approx_size()
-    }
-
     fn size_hint() -> usize
     where
         Self: Sized,
     {
         L::size_hint() + S::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        L::size_hint() + self.inner.approx_size()
     }
 }
 
