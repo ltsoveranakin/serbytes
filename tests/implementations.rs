@@ -185,3 +185,21 @@ fn test_block() {
 
     assert!(matches!(e.specific_error, SpecificError::Bytes { .. }));
 }
+
+#[test]
+fn dyn_compat() {
+    let s = String::from("hello dyn");
+
+    let s_dyn: &dyn SerBytes = &s;
+
+    let mut wbb = WriteByteBufferOwned::new();
+
+    s_dyn.to_buf(&mut wbb);
+
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
+    let mut rbuf = rbb.rbb_ref_mut();
+
+    let s_deser = String::from_buf(&mut rbuf).expect("Clean read of dyn str");
+
+    assert_eq!(s, s_deser);
+}

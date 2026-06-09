@@ -1,6 +1,7 @@
 mod byte_tag;
 pub mod collections;
 mod deref_types;
+mod duration;
 #[cfg(feature = "glam")]
 pub mod glam;
 mod json_like;
