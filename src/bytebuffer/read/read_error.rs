@@ -63,7 +63,7 @@ impl<'a> Display for ReadError<'a> {
         )?;
 
         if let Some(child) = &self.child {
-            writeln!(f, "; Error originates in child: {}", child)?;
+            write!(f, "; Error originates in child:\n{}", child)?;
         }
 
         Ok(())
