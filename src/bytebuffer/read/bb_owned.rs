@@ -106,15 +106,19 @@ impl ReadByteBufferOwned {
     read_owned_ty!(f32, read_f32, 4);
     read_owned_ty!(f64, read_f64, 8);
 
-    pub fn into_vec(self) -> Vec<u8> {
-        self.buf
-    }
-
     pub fn flush_bits(&mut self) {
         if self.bit_index != 0 {
             self.index += 1;
         }
         self.bit_index = 0;
+    }
+
+    pub fn into_vec(self) -> Vec<u8> {
+        self.buf
+    }
+
+    pub fn buf(&self) -> &Vec<u8> {
+        &self.buf
     }
 }
 
