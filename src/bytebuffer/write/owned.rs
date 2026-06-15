@@ -35,13 +35,13 @@ impl WriteByteBufferOwned {
         self.bit_pos += 1;
     }
 
-    pub fn write_bits(&mut self, bits: u8, count: usize) {
+    pub fn write_bits(&mut self, bits: u64, count: usize) {
         let mask = 1;
 
         for i in 0..count {
             let shifted_right = bits >> count - i;
             let bit = shifted_right & mask;
-            self.write_bit(bit);
+            self.write_bit(bit as u8);
         }
     }
 

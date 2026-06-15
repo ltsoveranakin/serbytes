@@ -42,16 +42,16 @@ impl<'a> ReadByteBufferRefMut<'a> {
         *self.bit_index = 0;
     }
 
-    pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
+    pub fn read_bits(&mut self, count: usize) -> BBReadResult<u64> {
         assert!(
-            count > 0 && count <= 8,
-            "The maximum bits to read must be between 1 and 8 inclusively [1, 8]; Got: {count}"
+            count > 0 && count <= 64,
+            "The maximum bits to read must be between 1 and 64 inclusively [1, 64]; Got: {count}"
         );
 
         let mut bits = 0;
 
         for i in 0..count {
-            let bit = self.read_bit()?;
+            let bit = self.read_bit()? as u64;
             let shifted = bit << (count - i);
 
             bits |= shifted;

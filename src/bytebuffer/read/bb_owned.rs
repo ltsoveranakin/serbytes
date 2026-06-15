@@ -40,7 +40,7 @@ impl ReadByteBufferOwned {
         self.rbb_ref_mut().read_bit()
     }
 
-    pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
+    pub fn read_bits(&mut self, count: usize) -> BBReadResult<u64> {
         self.rbb_ref_mut().read_bits(count)
     }
 

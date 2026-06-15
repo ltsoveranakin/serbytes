@@ -8,16 +8,16 @@ pub trait MayNotExistDataProvider<T> {
     fn get_data() -> T;
 }
 
-#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
-pub struct MayNotExistOrElse<S, F> {
+#[derive(Debug, Default, Eq, PartialEq)]
+pub struct MayNotExistOrElse<S, P> {
     pub inner: S,
-    _callback: PhantomData<F>,
+    _data_provider: PhantomData<P>,
 }
 
-impl<S, F> SerBytes for MayNotExistOrElse<S, F>
+impl<S, P> SerBytes for MayNotExistOrElse<S, P>
 where
     S: SerBytes,
-    F: MayNotExistDataProvider<S>,
+    P: MayNotExistDataProvider<S>,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
@@ -28,12 +28,12 @@ where
         {
             data
         } else {
-            F::get_data()
+            P::get_data()
         };
 
         Ok(Self {
             inner: data,
-            _callback: PhantomData,
+            _data_provider: PhantomData,
         })
     }
 
@@ -66,7 +66,7 @@ where
     }
 }
 
-impl<S, F> MayNotExistOrElse<S, F> {
+impl<S, P> MayNotExistOrElse<S, P> {
     pub fn into_inner(self) -> S {
         self.inner
     }
@@ -74,16 +74,30 @@ impl<S, F> MayNotExistOrElse<S, F> {
     pub fn new(s: S) -> Self {
         Self {
             inner: s,
-            _callback: PhantomData,
+            _data_provider: PhantomData,
         }
     }
 }
 
-impl<T, F> From<T> for MayNotExistOrElse<T, F> {
+impl<T, P> From<T> for MayNotExistOrElse<T, P> {
     fn from(value: T) -> Self {
         Self {
             inner: value,
-            _callback: PhantomData,
+            _data_provider: PhantomData,
         }
     }
 }
+
+impl<S, P> Clone for MayNotExistOrElse<S, P>
+where
+    S: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+            _data_provider: PhantomData,
+        }
+    }
+}
+
+impl<S, P> Copy for MayNotExistOrElse<S, P> where S: Copy {}
