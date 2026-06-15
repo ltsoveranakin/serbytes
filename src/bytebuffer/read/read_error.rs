@@ -96,6 +96,16 @@ impl From<ReadError<'static>> for io::Error {
     }
 }
 
+impl<'a> From<io::Error> for ReadError<'a> {
+    fn from(value: io::Error) -> Self {
+        ReadError::new(
+            SpecificError::Other(value.to_string().into()),
+            "io::Error",
+            None,
+        )
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum SpecificError<'a> {
     U8,
