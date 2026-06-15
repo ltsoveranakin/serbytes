@@ -177,7 +177,13 @@ impl SerBytes for Ordering {
 
             2 => Self::Greater,
 
-            _ => return Err(ReadError::new(SpecificError::EnumOrdinal, "Ordering", None)),
+            _ => {
+                return Err(ReadError::new(
+                    SpecificError::Other("Enum index out of bounds".into()),
+                    "Ordering",
+                    None,
+                ));
+            }
         };
 
         Ok(ord)

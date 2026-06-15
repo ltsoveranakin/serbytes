@@ -1,19 +1,10 @@
 use std::borrow::Cow;
+use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::io;
+use std::io::ErrorKind;
 
 pub type BBReadResult<T> = Result<T, ReadError<'static>>;
-
-#[derive(Debug, Clone)]
-pub enum SpecificError<'a> {
-    U8,
-    I8,
-    Bytes { remaining_bytes: usize, got: usize },
-    Bool,
-    SingleBit,
-    RemainingBits,
-    EnumOrdinal,
-    Other(Cow<'a, str>),
-}
 
 /// An error that represents an inability to read or deserialize a type in some shape or form
 ///
@@ -23,7 +14,8 @@ pub enum SpecificError<'a> {
 pub struct ReadError<'a> {
     /// The specific error generated from being deserialized, this is the value of the individual bytebuffer fail
     ///
-    /// For example "Byte array of String".
+    /// For example when reading a [String] first a [u16] (we'll call x) is read then based on the resulting number, that many bytes are read.
+    /// If reading the x number of bytes fails then the [`SpecificError`] will be [`SpecificError::Bytes`]
     pub specific_error: SpecificError<'a>,
     /// The full type name which is being deserialized
     ///
@@ -32,7 +24,7 @@ pub struct ReadError<'a> {
     /// If the value being deserialized is a subset of another
     ///
     /// For example elements of type S in a `Vec<S>`
-    /// As in, if a `Vec<S>` fails to be deserialized, this field should be Some with the read error of S
+    /// As in, if a `Vec<S>` fails to be deserialized, this field should be `Some` with the read error of S
     child: Option<Box<Self>>,
 }
 
@@ -91,3 +83,53 @@ impl<'a> Default for ReadError<'a> {
         )
     }
 }
+
+impl Error for ReadError<'static> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.specific_error)
+    }
+}
+
+impl From<ReadError<'static>> for io::Error {
+    fn from(value: ReadError<'static>) -> Self {
+        io::Error::new(ErrorKind::Other, Box::new(value))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SpecificError<'a> {
+    U8,
+    I8,
+    Bytes { remaining_bytes: usize, got: usize },
+    Bool,
+    SingleBit,
+    RemainingBits,
+    Other(Cow<'a, str>),
+}
+
+impl<'a> Display for SpecificError<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Self::U8 => "U8",
+
+            Self::I8 => "I8",
+
+            Self::Bytes {
+                remaining_bytes,
+                got,
+            } => &format!("Bytes, remaining: {}; got: {}", remaining_bytes, got),
+
+            Self::Bool => "Bool",
+
+            Self::SingleBit => "SingleBit",
+
+            Self::RemainingBits => "RemainingBits",
+
+            Self::Other(other) => &format!("Other: {}", other),
+        };
+
+        write!(f, "SpecificError: {}", s)
+    }
+}
+
+impl<'a> Error for SpecificError<'a> {}

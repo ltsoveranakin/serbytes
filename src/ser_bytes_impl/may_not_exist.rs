@@ -1,7 +1,7 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
 use std::any::type_name;
-use std::fmt::{Debug, Formatter, Pointer};
+use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
 pub type MayNotExistOrDefault<S> = MayNotExistOrElse<S, DefaultDataProvider>;
