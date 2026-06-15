@@ -43,15 +43,15 @@ where
         self.inner.to_buf(buf);
     }
 
-    fn approx_size(&self) -> usize {
-        self.version_read.approx_size() + self.inner.approx_size()
-    }
-
     fn size_hint() -> usize
     where
         Self: Sized,
     {
         V::size_hint() + D::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        self.version_read.approx_size() + self.inner.approx_size()
     }
 }
 
