@@ -5,12 +5,10 @@ edition = "2024"
 
 [dependencies]
 byteorder = "1.5"
-bytes = { version = "1.10", optional = true }
 glam = { version = "0.32", optional = true }
 paste = "1.0"
 ser_bytes_derive = { path = "./macros/ser_bytes_derive" }
 
 [features]
 glam = ["dep:glam"]
-bytes = ["dep:bytes"]
 fs = []

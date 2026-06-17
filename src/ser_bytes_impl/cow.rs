@@ -17,4 +17,18 @@ where
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
         self.clone().into_owned().to_buf(buf)
     }
+
+    fn size_hint() -> usize
+    where
+        Self: Sized,
+    {
+        S::size_hint()
+    }
+
+    // While we could convert the value to owned to find it, this can be an expensive operation.
+    // So just cut our losses
+
+    fn approx_size(&self) -> usize {
+        0
+    }
 }

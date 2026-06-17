@@ -43,11 +43,6 @@ pub trait SerBytes {
         buf
     }
 
-    #[cfg(feature = "bytes")]
-    fn to_bytes_type(&self) -> Bytes {
-        Bytes::from(self.to_bb().into_vec())
-    }
-
     /// The absolute minimum amount of data that the serialized data will take up in bytes
     /// If it uses less than a byte, should always round up. i.e. 3 bits -> 8 bits (1 byte)
     fn size_hint() -> usize

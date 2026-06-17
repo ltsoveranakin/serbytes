@@ -1,3 +1,4 @@
+mod box_impl;
 mod byte_tag;
 pub mod collections;
 pub mod cow;

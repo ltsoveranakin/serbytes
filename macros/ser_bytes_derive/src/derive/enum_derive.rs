@@ -131,6 +131,8 @@ pub(super) fn impl_derive_enum(
             }
 
             fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
+                buf.reserve(Self::approx_size(self));
+
                 match self {
                     #(#to_buf_match_tokens)*
                 }

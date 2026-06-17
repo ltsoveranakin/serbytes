@@ -109,6 +109,7 @@ pub(super) fn impl_derive_struct(
             }
 
             fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
+                buf.reserve(Self::approx_size(self));
                 #to_function_body
             }
 

@@ -28,7 +28,11 @@ where
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        (self.len() as u16).to_buf(buf);
+        let len = self.len() as u16;
+
+        buf.reserve(len.approx_size() + (S::size_hint() * len as usize));
+
+        len.to_buf(buf);
 
         for ser_data in self {
             ser_data.to_buf(buf);
