@@ -1,6 +1,6 @@
 use crate::bytebuffer::read::read_macro::read_owned_ty;
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::ReadByteBufferPeek;
+use crate::prelude::ReadByteBufferSlice;
 
 pub struct ReadByteBufferOwned {
     buf: Vec<u8>,
@@ -28,8 +28,8 @@ impl ReadByteBufferOwned {
         }
     }
 
-    pub fn peek(&self) -> ReadByteBufferPeek<'_> {
-        ReadByteBufferPeek {
+    pub fn peek(&self) -> ReadByteBufferSlice<'_> {
+        ReadByteBufferSlice {
             buf: &self.buf,
             index: self.index,
             bit_index: self.bit_index,

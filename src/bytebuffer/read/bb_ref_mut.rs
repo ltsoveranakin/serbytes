@@ -1,5 +1,5 @@
 use crate::bytebuffer::read::read_macro::read_ref_ty;
-use crate::bytebuffer::{BBReadResult, ReadByteBufferPeek, ReadError, SpecificError, WithParent};
+use crate::bytebuffer::{BBReadResult, ReadByteBufferSlice, ReadError, SpecificError, WithParent};
 use std::ops::Index;
 
 pub struct ReadByteBufferRefMut<'a> {
@@ -121,8 +121,8 @@ impl<'a> ReadByteBufferRefMut<'a> {
         self.read_u8().map(|u| u as i8).with_parent("i8")
     }
 
-    pub fn peek(&self) -> ReadByteBufferPeek<'_> {
-        ReadByteBufferPeek {
+    pub fn peek(&self) -> ReadByteBufferSlice<'_> {
+        ReadByteBufferSlice {
             buf: self.buf,
             index: *self.index,
             bit_index: *self.bit_index,

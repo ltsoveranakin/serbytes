@@ -1,12 +1,12 @@
 mod bb_owned;
-mod bb_peek;
 mod bb_ref_mut;
+mod bb_slice;
 mod read_error;
 mod read_macro;
 
 pub use bb_owned::*;
-pub use bb_peek::*;
 pub use bb_ref_mut::*;
+pub use bb_slice::*;
 pub use read_error::*;
 
 pub trait ReadByteBuffer {
@@ -39,5 +39,5 @@ pub trait ReadByteBuffer {
     fn read_f32(&mut self) -> BBReadResult<f32>;
     fn read_f64(&mut self) -> BBReadResult<f64>;
 
-    fn peek(&self) -> ReadByteBufferPeek<'_>;
+    fn peek(&self) -> ReadByteBufferSlice<'_>;
 }
