@@ -1,5 +1,6 @@
 mod byte_tag;
 pub mod collections;
+pub mod cow;
 mod deref_types;
 mod duration;
 #[cfg(feature = "glam")]
