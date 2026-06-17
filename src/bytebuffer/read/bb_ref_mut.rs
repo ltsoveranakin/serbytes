@@ -88,8 +88,8 @@ impl<'a> ReadByteBufferRefMut<'a> {
         if !has_enough_bytes {
             return Err(ReadError::new(
                 SpecificError::Bytes {
-                    remaining_bytes,
-                    got: size,
+                    remaining_bytes: remaining_bytes as u32,
+                    got: size as u32,
                 },
                 "Read Bytes",
                 None,

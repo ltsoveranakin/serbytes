@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 impl<'a, S, B> SerBytes for Cow<'a, B>
 where
-    B: ToOwned<Owned = S>,
+    B: ToOwned<Owned = S> + ?Sized,
     S: SerBytes,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>

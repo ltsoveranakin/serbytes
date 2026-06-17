@@ -4,13 +4,17 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::ErrorKind;
 
+mod serbytes {
+    pub use crate::*;
+}
+
 pub type BBReadResult<T> = Result<T, ReadError<'static>>;
 
 /// An error that represents an inability to read or deserialize a type in some shape or form
 ///
 /// Most of the time you can get away with a static lifetime here, it only exists for future proofing and custom implementations
 
-#[derive(Debug, Clone)]
+#[derive(ser_bytes_derive::SerBytes, Debug, Clone)]
 pub struct ReadError<'a> {
     /// The specific error generated from being deserialized, this is the value of the individual bytebuffer fail
     ///
@@ -106,11 +110,11 @@ impl<'a> From<io::Error> for ReadError<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(ser_bytes_derive::SerBytes, Debug, Clone)]
 pub enum SpecificError<'a> {
     U8,
     I8,
-    Bytes { remaining_bytes: usize, got: usize },
+    Bytes { remaining_bytes: u32, got: u32 },
     Bool,
     SingleBit,
     RemainingBits,

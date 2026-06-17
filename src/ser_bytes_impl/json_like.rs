@@ -1,4 +1,3 @@
-use ser_bytes_derive::SerBytes;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
@@ -6,7 +5,7 @@ mod serbytes {
     pub use crate::*;
 }
 
-#[derive(SerBytes)]
+#[derive(ser_bytes_derive::SerBytes)]
 pub struct Object(HashMap<String, JsonLikeValue>);
 
 impl Deref for Object {
@@ -23,9 +22,9 @@ impl DerefMut for Object {
     }
 }
 
-#[derive(SerBytes)]
+#[derive(ser_bytes_derive::SerBytes)]
 pub enum JsonLikeValue {
-    Object(Box<Object>),
+    Object(Object),
     Array(Vec<JsonLikeValue>),
     String(String),
     Number(f64),
