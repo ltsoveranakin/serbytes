@@ -1,7 +1,7 @@
 use crate::bytebuffer::{
-    BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned,
+    BBReadResult, ReadByteBufferRefMut, ReadByteBufferSlice, WithParent, WriteByteBufferOwned,
 };
-use crate::ser_bytes_impl::{LengthLike, U8Vec, from_buf};
+use crate::ser_bytes_impl::{LengthLike, from_buf};
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 use std::marker::PhantomData;
 
@@ -43,9 +43,10 @@ where
         Self: Sized,
     {
         let mut inner_fn = || {
-            let block_buffer_vec = U8Vec::<L>::from_buf(buf)?;
+            let len = L::from_buf(buf)?.to_usize();
+            let bytes = buf.read_bytes(len)?;
 
-            let mut block_buffer = ReadByteBufferOwned::from_vec(block_buffer_vec);
+            let mut block_buffer = ReadByteBufferSlice::new(bytes);
 
             Ok(Self {
                 inner: from_buf(&mut block_buffer.rbb_ref_mut())?,

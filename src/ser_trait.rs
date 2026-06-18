@@ -1,8 +1,6 @@
 use crate::bytebuffer::{
     BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned,
 };
-#[cfg(feature = "bytes")]
-use bytes::Bytes;
 
 /// [`SerBytes`]
 ///
