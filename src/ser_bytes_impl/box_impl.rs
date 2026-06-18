@@ -26,3 +26,27 @@ where
 }
 
 impl<S> SerBytesStaticSized for Box<S> where S: SerBytesStaticSized {}
+
+impl<S> SerBytes for Box<[S]>
+where
+    S: SerBytes,
+{
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        let v = Vec::from_buf(buf)?;
+
+        Ok(v.into_boxed_slice())
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        let len = self.len() as u16;
+
+        len.to_buf(buf);
+
+        for s in self {
+            s.to_buf(buf);
+        }
+    }
+}
