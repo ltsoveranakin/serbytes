@@ -1,4 +1,4 @@
-mod box_impl;
+pub mod box_impl;
 mod byte_tag;
 pub mod collections;
 pub mod cow;
@@ -8,6 +8,7 @@ mod duration;
 pub mod glam;
 mod json_like;
 mod may_not_exist;
+pub mod option;
 mod ser_bytes_impl_macro;
 mod sized_block;
 mod skip_ser;
@@ -17,6 +18,7 @@ pub use byte_tag::*;
 pub use collections::*;
 pub use json_like::*;
 pub use may_not_exist::*;
+pub use option::*;
 pub use sized_block::*;
 pub use skip_ser::*;
 use std::cmp::Ordering;
@@ -94,37 +96,6 @@ impl<T> SerBytes for PhantomData<T> {
 }
 
 impl<T> SerBytesStaticSized for PhantomData<T> {}
-
-impl<S> SerBytes for Option<S>
-where
-    S: SerBytes,
-{
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
-    where
-        Self: Sized,
-    {
-        let is_some = from_buf::<bool>(buf)?;
-
-        Ok(if is_some { Some(from_buf(buf)?) } else { None })
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        match self {
-            Some(s) => {
-                true.to_buf(buf);
-                s.to_buf(buf);
-            }
-
-            None => {
-                false.to_buf(buf);
-            }
-        }
-    }
-
-    fn size_hint() -> usize {
-        bool::size_hint()
-    }
-}
 
 impl<'a, S, E> SerBytes for Result<S, E>
 where
