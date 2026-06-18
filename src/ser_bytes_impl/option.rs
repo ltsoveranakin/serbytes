@@ -1,5 +1,6 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::{SerBytes, from_buf};
+use crate::mapped::SerbytesMapped;
+use crate::ser_trait::SerBytes;
 
 impl<S> SerBytes for Option<S>
 where
@@ -9,25 +10,47 @@ where
     where
         Self: Sized,
     {
-        let is_some = from_buf::<bool>(buf)?;
-
-        Ok(if is_some { Some(from_buf(buf)?) } else { None })
+        Self::from_buf_mapped(buf, |buf| S::from_buf(buf))
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        match self {
-            Some(s) => {
-                true.to_buf(buf);
-                s.to_buf(buf);
-            }
-
-            None => {
-                false.to_buf(buf);
-            }
-        }
+        self.to_buf_mapped(buf, |buf, value| {
+            value.to_buf(buf);
+        })
     }
 
     fn size_hint() -> usize {
         bool::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        bool::size_hint()
+    }
+}
+
+impl<T> SerbytesMapped<T> for Option<T> {
+    fn from_buf_mapped<F>(buf: &mut ReadByteBufferRefMut, reader: F) -> BBReadResult<Self>
+    where
+        Self: Sized,
+        F: FnOnce(&mut ReadByteBufferRefMut) -> BBReadResult<T>,
+    {
+        if buf.read_bool()? {
+            Ok(Some(reader(buf)?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn to_buf_mapped<F>(&self, buf: &mut WriteByteBufferOwned, writer: F)
+    where
+        F: FnOnce(&mut WriteByteBufferOwned, &T),
+    {
+        if let Some(value) = self {
+            true.to_buf(buf);
+
+            writer(buf, value);
+        } else {
+            false.to_buf(buf);
+        }
     }
 }

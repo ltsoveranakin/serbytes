@@ -2,6 +2,7 @@ pub use crate::bytebuffer::*;
 
 #[cfg(feature = "fs")]
 pub use crate::fs::*;
+pub use crate::mapped::*;
 pub use crate::ser_bytes_impl::*;
 pub use crate::ser_trait::*;
 pub use crate::size::*;

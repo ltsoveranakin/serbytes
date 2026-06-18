@@ -1,11 +1,11 @@
 extern crate core;
 
-mod bytebuffer;
-
 pub mod prelude;
-mod ser_bytes_impl;
 
+mod bytebuffer;
 #[cfg(feature = "fs")]
 mod fs;
+mod mapped;
+mod ser_bytes_impl;
 mod ser_trait;
 mod size;

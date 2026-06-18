@@ -18,7 +18,6 @@ pub use byte_tag::*;
 pub use collections::*;
 pub use json_like::*;
 pub use may_not_exist::*;
-pub use option::*;
 pub use sized_block::*;
 pub use skip_ser::*;
 use std::cmp::Ordering;
@@ -55,7 +54,7 @@ pub trait LengthLike {
     fn to_usize(self) -> usize;
 }
 
-#[inline]
+#[inline(always)]
 pub fn from_buf<S>(buf: &mut ReadByteBufferRefMut) -> BBReadResult<S>
 where
     S: SerBytes,
@@ -63,7 +62,7 @@ where
     S::from_buf(buf)
 }
 
-#[inline]
+#[inline(always)]
 pub fn to_buf<S>(s: &S, buf: &mut WriteByteBufferOwned)
 where
     S: SerBytes,
