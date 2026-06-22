@@ -187,6 +187,43 @@ fn test_block() {
 }
 
 #[test]
+fn test_block_result() {
+    #[derive(SerBytes, Eq, PartialEq)]
+    struct Data1 {
+        first: u32,
+        block: SizedBlock<BBReadResult<u16>>,
+        end: String,
+    }
+
+    #[derive(SerBytes, Eq, PartialEq)]
+    struct Data2 {
+        first: u32,
+        block: SizedBlock<BBReadResult<u32>>,
+        end: String,
+    }
+
+    let d1 = Data1 {
+        first: 124,
+        block: Ok(8387).into(),
+        end: "End data block".into(),
+    };
+
+    let mut wbb = WriteByteBufferOwned::new();
+
+    d1.to_buf(&mut wbb);
+
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb);
+
+    let d2 = Data2::from_buf(&mut rbb.rbb_ref_mut()).expect("Deserialize data 2");
+
+    assert_eq!(d1.first, d2.first);
+
+    d2.block.inner.expect_err("Should error with invalid size");
+
+    assert_eq!(d1.end, d2.end);
+}
+
+#[test]
 fn dyn_compat() {
     let s = String::from("hello dyn");
 
@@ -196,7 +233,7 @@ fn dyn_compat() {
 
     s_dyn.to_buf(&mut wbb);
 
-    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
+    let mut rbb = ReadByteBufferOwned::from_vec(wbb);
     let mut rbuf = rbb.rbb_ref_mut();
 
     let s_deser = String::from_buf(&mut rbuf).expect("Clean read of dyn str");

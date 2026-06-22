@@ -14,7 +14,7 @@ pub type BBReadResult<T> = Result<T, ReadError<'static>>;
 ///
 /// Most of the time you can get away with a static lifetime here, it only exists for future proofing and custom implementations
 
-#[derive(ser_bytes_derive::SerBytes, Debug, Clone)]
+#[derive(ser_bytes_derive::SerBytes, Debug, Clone, Eq, PartialEq)]
 pub struct ReadError<'a> {
     /// The specific error generated from being deserialized, this is the value of the individual bytebuffer fail
     ///
@@ -78,7 +78,7 @@ impl<'a, T> WithParent<'a> for Result<T, ReadError<'a>> {
 
 const DEFAULT_STR: &str = "Default";
 
-impl<'a> Default for ReadError<'a> {
+impl Default for ReadError<'static> {
     fn default() -> Self {
         Self::new(
             SpecificError::Other(Cow::Borrowed(DEFAULT_STR)),
@@ -110,7 +110,7 @@ impl<'a> From<io::Error> for ReadError<'a> {
     }
 }
 
-#[derive(ser_bytes_derive::SerBytes, Debug, Clone)]
+#[derive(ser_bytes_derive::SerBytes, Debug, Clone, Eq, PartialEq)]
 pub enum SpecificError<'a> {
     U8,
     I8,

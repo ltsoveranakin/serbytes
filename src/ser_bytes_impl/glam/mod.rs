@@ -1,7 +1,7 @@
 mod vec_macro;
 
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::{from_buf, SerBytes, SerBytesStaticSized};
+use crate::prelude::{SerBytes, SerBytesStaticSized, from_buf};
 use glam::{IVec2, Vec2};
 
 impl SerBytes for IVec2 {
@@ -22,6 +22,10 @@ impl SerBytes for IVec2 {
         Self: Sized,
     {
         u16::size_hint() * 2
+    }
+
+    fn approx_size(&self) -> usize {
+        self.x.approx_size() + self.y.approx_size()
     }
 }
 
@@ -45,6 +49,10 @@ impl SerBytes for Vec2 {
         Self: Sized,
     {
         f32::size_hint() * 2
+    }
+
+    fn approx_size(&self) -> usize {
+        self.x.approx_size() + self.y.approx_size()
     }
 }
 

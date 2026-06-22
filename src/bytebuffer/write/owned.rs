@@ -70,7 +70,7 @@ impl WriteByteBufferOwned {
     }
 
     pub fn write_bytes(&mut self, bytes: &[u8]) {
-        self.buf.extend_from_slice(bytes)
+        self.buf.extend_from_slice(bytes);
     }
 
     pub fn write_u8(&mut self, n: u8) {
@@ -168,5 +168,11 @@ impl WriteByteBufferOwned {
 
     pub fn reserve(&mut self, additional: usize) {
         self.buf.reserve(additional);
+    }
+}
+
+impl From<WriteByteBufferOwned> for Vec<u8> {
+    fn from(value: WriteByteBufferOwned) -> Self {
+        value.into_vec()
     }
 }

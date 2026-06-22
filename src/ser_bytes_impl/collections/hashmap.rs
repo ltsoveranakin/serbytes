@@ -29,7 +29,11 @@ where
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        (self.len() as u16).to_buf(buf);
+        let len = self.len() as u16;
+
+        buf.reserve(self.approx_size());
+
+        len.to_buf(buf);
 
         for (key, value) in self {
             key.to_buf(buf);

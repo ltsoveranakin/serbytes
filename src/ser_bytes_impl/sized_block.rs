@@ -5,6 +5,8 @@ use crate::ser_bytes_impl::{LengthLike, from_buf};
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
 use std::marker::PhantomData;
 
+pub type ResultBlock<T> = SizedBlock<BBReadResult<T>>;
+
 /// A SizedBlock, used to ensure a given piece of data doesn't encroach on the following data in the buffer
 ///
 /// Useful when frequently modifying your data structure especially when combined with [`BBReadResult`], i.e. [`SizedBlock<BBReadResult<SomeTypeThatChanges>>`]
@@ -91,5 +93,15 @@ where
 impl<S, L> From<S> for SizedBlock<S, L> {
     fn from(value: S) -> Self {
         Self::new_with_len_type(value)
+    }
+}
+
+impl<T> ResultBlock<T> {
+    pub fn unwrapped_ref(&self) -> &T {
+        self.inner.as_ref().unwrap()
+    }
+
+    pub fn unwrapped_mut(&mut self) -> &mut T {
+        self.inner.as_mut().unwrap()
     }
 }

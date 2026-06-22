@@ -1,5 +1,5 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
-use crate::ser_bytes_impl::{LengthLike, from_buf};
+use crate::ser_bytes_impl::{LengthLike, slice_to_buf_u16, u8_slice_to_buf, vec_from_buf_u16};
 use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
 
@@ -13,30 +13,13 @@ where
     ///
     /// NOTE: This is incredibly inefficient for a [`Vec`] of `u8` or `i8`, instead use [`U8Vec`]
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
-        let mut inner = || {
-            let vec_len = u16::from_buf(buf)? as usize;
-            let mut vec = Vec::with_capacity(vec_len);
-
-            for _ in 0..vec_len {
-                vec.push(from_buf(buf)?);
-            }
-
-            Ok(vec)
-        };
+        let mut inner = || vec_from_buf_u16(buf);
 
         inner().with_parent("Vec")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        let len = self.len() as u16;
-
-        buf.reserve(len.approx_size() + (S::size_hint() * len as usize));
-
-        len.to_buf(buf);
-
-        for ser_data in self {
-            ser_data.to_buf(buf);
-        }
+        slice_to_buf_u16(buf, self);
     }
 
     fn size_hint() -> usize
@@ -59,7 +42,7 @@ pub struct U8Vec<L = u16> {
 
 impl<L> SerBytes for U8Vec<L>
 where
-    L: SerBytes + LengthLike,
+    L: LengthLike,
 {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
     where
@@ -79,10 +62,7 @@ where
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        let len = L::from_usize(self.vec.len());
-
-        len.to_buf(buf);
-        buf.write_bytes(&self.vec);
+        u8_slice_to_buf::<L>(buf, &self.vec);
     }
 }
 

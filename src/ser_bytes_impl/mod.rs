@@ -9,6 +9,7 @@ pub mod glam;
 mod json_like;
 mod may_not_exist;
 pub mod option;
+pub mod result;
 mod ser_bytes_impl_macro;
 mod sized_block;
 mod skip_ser;
@@ -48,7 +49,7 @@ ser_data_impl!(i128, i128, 16);
 ser_data_impl!(f32, f32, 4);
 ser_data_impl!(f64, f64, 8);
 
-pub trait LengthLike {
+pub trait LengthLike: SerBytes {
     fn from_usize(us: usize) -> Self;
 
     fn to_usize(self) -> usize;
@@ -68,6 +69,82 @@ where
     S: SerBytes,
 {
     S::to_buf(s, buf)
+}
+
+pub fn slice_to_buf<S, L>(buf: &mut WriteByteBufferOwned, slice: &[S])
+where
+    S: SerBytes,
+    L: LengthLike,
+{
+    buf.reserve(S::size_hint() * slice.len());
+
+    L::from_usize(slice.len()).to_buf(buf);
+
+    for s in slice {
+        s.to_buf(buf);
+    }
+}
+
+#[inline(always)]
+pub fn slice_to_buf_u16<S>(buf: &mut WriteByteBufferOwned, slice: &[S])
+where
+    S: SerBytes,
+{
+    slice_to_buf::<S, u16>(buf, slice)
+}
+
+pub fn vec_from_buf<S, L>(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Vec<S>>
+where
+    S: SerBytes,
+    L: LengthLike,
+{
+    let len = L::from_buf(buf)?.to_usize();
+
+    let mut v = Vec::with_capacity(len);
+
+    for _ in 0..len {
+        v.push(S::from_buf(buf)?);
+    }
+
+    Ok(v)
+}
+
+#[inline(always)]
+pub fn vec_from_buf_u16<S>(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Vec<S>>
+where
+    S: SerBytes,
+{
+    vec_from_buf::<S, u16>(buf)
+}
+
+pub fn into_slice_from_buf<S, L, O>(buf: &mut ReadByteBufferRefMut) -> BBReadResult<O>
+where
+    S: SerBytes,
+    L: LengthLike,
+    O: From<Vec<S>>,
+{
+    let v = vec_from_buf::<S, L>(buf)?;
+
+    Ok(v.into())
+}
+
+pub fn into_slice_from_buf_u16<S, O>(buf: &mut ReadByteBufferRefMut) -> BBReadResult<O>
+where
+    S: SerBytes,
+    O: From<Vec<S>>,
+{
+    let v = vec_from_buf::<S, u16>(buf)?;
+
+    Ok(v.into())
+}
+
+pub fn u8_slice_to_buf<L>(buf: &mut WriteByteBufferOwned, slice: &[u8])
+where
+    L: LengthLike,
+{
+    L::from_usize(slice.len()).to_buf(buf);
+
+    buf.write_bytes(slice);
 }
 
 impl SerBytes for () {
@@ -95,45 +172,6 @@ impl<T> SerBytes for PhantomData<T> {
 }
 
 impl<T> SerBytesStaticSized for PhantomData<T> {}
-
-impl<'a, S, E> SerBytes for Result<S, E>
-where
-    S: SerBytes,
-    E: From<ReadError<'a>>,
-{
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
-    where
-        Self: Sized,
-    {
-        Ok(S::from_buf(buf).map_err(|e| e.into()))
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        match &self {
-            Ok(s) => {
-                s.to_buf(buf);
-            }
-
-            Err(_) => {
-                panic!("Attempt to write error variant to buffer")
-            }
-        }
-    }
-
-    fn size_hint() -> usize
-    where
-        Self: Sized,
-    {
-        S::size_hint()
-    }
-
-    fn approx_size(&self) -> usize {
-        match self {
-            Ok(s) => s.approx_size(),
-            Err(_) => S::size_hint(),
-        }
-    }
-}
 
 impl SerBytes for Ordering {
     fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>

@@ -1,5 +1,6 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::prelude::{SerBytes, from_buf};
+use crate::ser_bytes_impl::{into_slice_from_buf_u16, slice_to_buf_u16};
 use crate::ser_trait::SerBytesStaticSized;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -30,6 +31,22 @@ where
 }
 
 impl<S> SerBytesStaticSized for Arc<S> where S: SerBytesStaticSized {}
+
+impl<S> SerBytes for Arc<[S]>
+where
+    S: SerBytes,
+{
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        into_slice_from_buf_u16(buf)
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        slice_to_buf_u16(buf, &self)
+    }
+}
 
 impl<S> SerBytes for Rc<S>
 where
