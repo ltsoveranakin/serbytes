@@ -105,3 +105,9 @@ impl<T> ResultBlock<T> {
         self.inner.as_mut().unwrap()
     }
 }
+
+impl<T> From<T> for ResultBlock<T> {
+    fn from(value: T) -> Self {
+        Ok(value).into()
+    }
+}
