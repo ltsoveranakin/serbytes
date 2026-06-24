@@ -1,4 +1,4 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
+use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
 
@@ -21,10 +21,14 @@ where
     where
         Self: Sized,
     {
-        Ok(Self {
-            inner: M::value_from_buf(buf)?,
-            _mapped_provider: PhantomData,
-        })
+        let mut inner_fn = || {
+            Ok(Self {
+                inner: M::value_from_buf(buf)?,
+                _mapped_provider: PhantomData,
+            })
+        };
+
+        inner_fn().with_parent("Mapped")
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
