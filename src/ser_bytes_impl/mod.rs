@@ -7,6 +7,7 @@ mod duration;
 #[cfg(feature = "glam")]
 pub mod glam;
 mod json_like;
+mod mapped;
 mod may_not_exist;
 pub mod option;
 pub mod result;
@@ -18,18 +19,18 @@ mod versioning_wrapper;
 pub use byte_tag::*;
 pub use collections::*;
 pub use json_like::*;
+pub use mapped::*;
 pub use may_not_exist::*;
 pub use sized_block::*;
 pub use skip_ser::*;
-use std::cmp::Ordering;
 pub use versioning_wrapper::*;
 
 use crate::bytebuffer::{
     BBReadResult, ReadByteBufferRefMut, ReadError, SpecificError, WithParent, WriteByteBufferOwned,
 };
-use crate::ser_trait::{SerBytes, SerBytesStaticSized};
-
 use crate::ser_bytes_impl::ser_bytes_impl_macro::{ser_data_impl, ser_data_impl_u};
+use crate::ser_trait::{SerBytes, SerBytesStaticSized};
+use std::cmp::Ordering;
 use std::marker::PhantomData;
 
 ser_data_impl!(bool, bool, 1);
@@ -133,9 +134,7 @@ where
     S: SerBytes,
     O: From<Vec<S>>,
 {
-    let v = vec_from_buf::<S, u16>(buf)?;
-
-    Ok(v.into())
+    into_slice_from_buf::<S, u16, O>(buf)
 }
 
 pub fn u8_slice_to_buf<L>(buf: &mut WriteByteBufferOwned, slice: &[u8])
