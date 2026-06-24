@@ -2,6 +2,7 @@ use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByt
 use crate::ser_trait::SerBytes;
 use std::marker::PhantomData;
 
+#[derive(Debug)]
 pub struct Mapped<S, M> {
     pub inner: S,
     _mapped_provider: PhantomData<M>,
@@ -53,6 +54,17 @@ where
         Self::new(S::default())
     }
 }
+
+impl<S, M> Clone for Mapped<S, M>
+where
+    S: Clone,
+{
+    fn clone(&self) -> Self {
+        Self::new(self.inner.clone())
+    }
+}
+
+impl<S, M> Copy for Mapped<S, M> where S: Copy {}
 
 impl<S, M> From<S> for Mapped<S, M> {
     fn from(value: S) -> Self {
