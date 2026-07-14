@@ -1,6 +1,7 @@
 use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_bytes_impl::{LengthLike, slice_to_buf_u16, u8_slice_to_buf, vec_from_buf_u16};
 use crate::ser_trait::SerBytes;
+use std::collections::VecDeque;
 use std::marker::PhantomData;
 
 impl<S> SerBytes for Vec<S>
@@ -88,5 +89,38 @@ impl<L> From<Vec<u8>> for U8Vec<L> {
 impl<L> From<U8Vec<L>> for Vec<u8> {
     fn from(value: U8Vec<L>) -> Self {
         value.vec
+    }
+}
+
+impl<S> SerBytes for VecDeque<S>
+where
+    S: SerBytes,
+{
+    /// Reads bytes from a buffer into a [`VecDeque<S>`]
+    ///
+    /// Uses a `u16` to determine the amount of bytes to read
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
+        let mut inner = || vec_from_buf_u16(buf).map(|vec| vec.into());
+
+        inner().with_parent("VecDequeue")
+    }
+
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        buf.write_u16(self.len() as u16);
+
+        for el in self {
+            el.to_buf(buf);
+        }
+    }
+
+    fn size_hint() -> usize
+    where
+        Self: Sized,
+    {
+        u16::size_hint()
+    }
+
+    fn approx_size(&self) -> usize {
+        u16::size_hint() + (S::size_hint() * self.len())
     }
 }
