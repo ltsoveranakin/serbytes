@@ -85,7 +85,9 @@ fn test_rem_bits() {
     assert_eq!(rbb.read_bool().expect("Bit 4 to exist"), b4);
     assert_eq!(rbb.read_bool().expect("Bit 5 to exist"), b5);
     assert_eq!(
-        rbb.read_remaining_bits().expect("Remaining bits to exist"),
+        rbb.read_remaining_bits()
+            .expect("Remaining bits to exist")
+            .1,
         rem
     );
 }

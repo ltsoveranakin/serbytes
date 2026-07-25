@@ -36,94 +36,68 @@ impl ReadByteBufferOwned {
         }
     }
 
-    pub fn read_bit(&mut self) -> BBReadResult<u8> {
-        self.rbb_ref_mut().read_bit()
+    /// Reads `size` bytes to a vector.
+    /// If you would like to avoid the extra overhead of a vec, use [`ReadByteBufferOwned::rbb_ref_mut`]
+    /// to obtain a [`ReadByteBufferRefMut`], on which you can call [`ReadByteBufferRefMut::read_bytes`]
+
+    pub fn read_bytes_to_vec(&mut self, size: usize) -> BBReadResult<Vec<u8>> {
+        let mut rbb_ref = self.rbb_ref_mut();
+        let bytes = rbb_ref.read_bytes(size)?;
+
+        Ok(bytes.to_vec())
     }
+
+    /// Shorthand for [`ReadByteBufferRefMut::read_bits`]
 
     pub fn read_bits(&mut self, count: usize) -> BBReadResult<u64> {
         self.rbb_ref_mut().read_bits(count)
     }
 
-    /// Reads `count` bytes to a vector.
-    /// If you would like to avoid the extra overhead of a vec, use [`ReadByteBufferOwned::rbb_ref_mut`]
-    /// to obtain a [`ReadByteBufferRefMut`], on which you can call [`ReadByteBufferRefMut::read_bytes`]
+    read_owned_ty!(u8, read_bit);
+    read_owned_ty!(bool, read_bool);
 
-    pub fn read_bytes_to_vec(&mut self, count: usize) -> BBReadResult<Vec<u8>> {
-        let mut rbb_ref = self.rbb_ref_mut();
-        let bytes = rbb_ref.read_bytes(count)?;
+    read_owned_ty!((usize, u8), read_remaining_bits);
 
-        Ok(bytes.to_vec())
-    }
+    read_owned_ty!(u8, read_u8);
+    read_owned_ty!(u16, read_u16);
+    read_owned_ty!(u32, read_u32);
+    read_owned_ty!(u64, read_u64);
+    read_owned_ty!(u128, read_u128);
 
-    // pub fn read_bits(&mut self, count: usize) -> BBReadResult<u8> {
-    //     let final_bit_index = self.bit_index + count - 1;
-    //     if final_bit_index > 7 {
-    //         return Err(ReadError::new(format!(
-    //             "read bits; count: {}; bit_index: {}",
-    //             count, self.bit_index
-    //         )));
-    //     }
-    //
-    //     let read_bits = self.buf[self.index];
-    //     let bits_shifted_l = read_bits << self.bit_index;
-    //     let bits = bits_shifted_l >> ((7 - final_bit_index) + self.bit_index);
-    //
-    //     self.bit_index = final_bit_index + 1;
-    //
-    //     if self.bit_index == 8 {
-    //         self.flush_bit_index();
-    //     }
-    //
-    //     Ok(bits)
-    // }
+    read_owned_ty!(i8, read_i8);
+    read_owned_ty!(i16, read_i16);
+    read_owned_ty!(i32, read_i32);
+    read_owned_ty!(i64, read_i64);
+    read_owned_ty!(i128, read_i128);
 
-    pub fn read_remaining_bits(&mut self) -> BBReadResult<u8> {
-        self.rbb_ref_mut().read_remaining_bits()
-    }
+    read_owned_ty!(f32, read_f32);
+    read_owned_ty!(f64, read_f64);
 
-    pub fn read_bool(&mut self) -> BBReadResult<bool> {
-        self.rbb_ref_mut().read_bool()
-    }
-
-    pub fn read_u8(&mut self) -> BBReadResult<u8> {
-        self.rbb_ref_mut().read_u8()
-    }
-
-    pub fn read_i8(&mut self) -> BBReadResult<i8> {
-        self.rbb_ref_mut().read_i8()
-    }
-
-    read_owned_ty!(u16, read_u16, 2);
-    read_owned_ty!(u32, read_u32, 4);
-    read_owned_ty!(u64, read_u64, 8);
-    read_owned_ty!(u128, read_u128, 16);
-
-    read_owned_ty!(i16, read_i16, 2);
-    read_owned_ty!(i32, read_i32, 4);
-    read_owned_ty!(i64, read_i64, 8);
-    read_owned_ty!(i128, read_i128, 16);
-
-    read_owned_ty!(f32, read_f32, 4);
-    read_owned_ty!(f64, read_f64, 8);
+    /// Shorthand for [`ReadByteBufferRefMut::flush_bits`]
 
     pub fn flush_bits(&mut self) {
-        if self.bit_index != 0 {
-            self.index += 1;
-        }
-        self.bit_index = 0;
-    }
-
-    pub fn into_vec(self) -> Vec<u8> {
-        self.buf
+        self.rbb_ref_mut().flush_bits();
     }
 
     pub fn buf(&self) -> &Vec<u8> {
         &self.buf
     }
+
+    pub fn reset(mut self) -> Self {
+        self.bit_index = 0;
+        self.index = 0;
+        self
+    }
 }
 
 impl From<WriteByteBufferOwned> for ReadByteBufferOwned {
     fn from(value: WriteByteBufferOwned) -> Self {
-        Self::from_vec(value.into_vec())
+        Self::from_vec(value)
+    }
+}
+
+impl From<ReadByteBufferOwned> for Vec<u8> {
+    fn from(value: ReadByteBufferOwned) -> Self {
+        value.buf
     }
 }

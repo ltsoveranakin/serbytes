@@ -60,22 +60,33 @@ impl<'a> ReadByteBufferRefMut<'a> {
         Ok(bits)
     }
 
-    pub fn read_remaining_bits(&mut self) -> BBReadResult<u8> {
+    /// Effectively does the same as [`Self::flush_bits`], except it returns the bits that were flushed and that number of bits
+
+    pub fn read_remaining_bits(&mut self) -> BBReadResult<(usize, u8)> {
+        const REM_BITS_STR: &str = "Remaining Bits";
         if *self.bit_index == 8 {
             return Err(ReadError::new(
                 SpecificError::RemainingBits,
-                "Remaining Bits",
+                REM_BITS_STR,
                 None,
             ));
         }
 
+        let read_bits = if let Some(read_bits) = self.buf.get(*self.index) {
+            read_bits
+        } else {
+            return Err(ReadError::new(SpecificError::SingleBit, REM_BITS_STR, None));
+        };
+
+        let bits_read = 8 - *self.bit_index;
+
         let mask = 0xFF >> *self.bit_index;
-        let read_bits = self.buf[*self.index];
+
         let bits = read_bits & mask;
 
         self.flush_bits();
 
-        Ok(bits)
+        Ok((bits_read, bits))
     }
 
     pub fn read_bool(&mut self) -> BBReadResult<bool> {
