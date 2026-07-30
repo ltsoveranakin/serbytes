@@ -1,8 +1,9 @@
-use crate::bytebuffer::{
-    BBReadResult, ReadByteBufferRefMut, ReadByteBufferSlice, WithParent, WriteByteBufferOwned,
-};
+use crate::bytebuffer::index_pointer::write::IndexPointerWrite;
 use crate::ser_bytes_impl::{LengthLike, from_buf};
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
+use bytebuffer::prelude::{
+    BBReadResult, ReadByteBufferRefMut, ReadByteBufferSlice, WithParent, WriteByteBufferOwned,
+};
 use std::marker::PhantomData;
 
 pub type ResultBlock<T> = SizedBlock<BBReadResult<T>>;

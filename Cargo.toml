@@ -8,7 +8,11 @@ byteorder = "1.5"
 glam = { version = "0.32", optional = true }
 paste = "1.0"
 ser_bytes_derive = { path = "./crates/macros/ser_bytes_derive" }
+bytebuffer = { path = "./crates/bytebuffer" }
 
 [features]
 glam = ["dep:glam"]
 fs = []
+
+[workspace]
+members = ["./crates/bytebuffer", "./crates/macros/ser_bytes_derive"]

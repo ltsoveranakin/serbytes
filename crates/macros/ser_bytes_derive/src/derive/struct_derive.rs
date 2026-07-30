@@ -100,15 +100,15 @@ pub(super) fn impl_derive_struct(
 
     quote! {
         impl #impl_generics serbytes::prelude::SerBytes for #struct_name #ty_generics #where_clause{
-            fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
+            fn from_buf(buf: &mut bytebuffer::prelude::ReadByteBufferRefMut) -> bytebuffer::prelude::BBReadResult<Self> {
                 let mut inner = || {
                     #from_function_body
                 };
 
-                serbytes::prelude::WithParent::with_parent(inner(), stringify!(#struct_name))
+                bytebuffer::prelude::WithParent::with_parent(inner(), stringify!(#struct_name))
             }
 
-            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
+            fn to_buf(&self, buf: &mut bytebuffer::prelude::WriteByteBufferOwned) {
                 buf.reserve(Self::approx_size(self));
                 #to_function_body
             }

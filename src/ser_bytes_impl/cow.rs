@@ -1,5 +1,5 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use std::borrow::Cow;
 
 impl<'a, S, B> SerBytes for Cow<'a, B>

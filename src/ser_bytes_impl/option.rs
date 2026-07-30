@@ -1,6 +1,6 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::mapped::SerbytesMapped;
 use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 
 impl<S> SerBytes for Option<S>
 where

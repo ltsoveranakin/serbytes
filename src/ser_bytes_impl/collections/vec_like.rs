@@ -1,6 +1,6 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_bytes_impl::{LengthLike, slice_to_buf_u16, u8_slice_to_buf, vec_from_buf_u16};
 use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use std::collections::VecDeque;
 use std::marker::PhantomData;
 

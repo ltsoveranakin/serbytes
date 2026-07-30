@@ -114,23 +114,23 @@ pub(super) fn impl_derive_enum(
 
     quote! {
         impl #impl_generics serbytes::prelude::SerBytes for #enum_name #ty_generics #where_clause{
-            fn from_buf(buf: &mut serbytes::prelude::ReadByteBufferRefMut) -> serbytes::prelude::BBReadResult<Self> {
+            fn from_buf(buf: &mut bytebuffer::prelude::ReadByteBufferRefMut) -> bytebuffer::prelude::BBReadResult<Self> {
                 let mut inner = || {
-                    let index = serbytes::prelude::WithParent::with_parent(u8::from_buf(buf), "Enum index")?;
+                    let index = bytebuffer::prelude::WithParent::with_parent(u8::from_buf(buf), "Enum index")?;
 
                     match index {
                         #(#from_buf_match_tokens)*
 
                         _ => {
-                            Err(serbytes::prelude::ReadError::new(serbytes::prelude::SpecificError::Other("Enum index out of bounds".into()), stringify!(#enum_name), None))
+                            Err(bytebuffer::prelude::ReadError::new(bytebuffer::prelude::SpecificError::Other("Enum index out of bounds".into()), stringify!(#enum_name), None))
                         }
                     }
                 };
 
-                serbytes::prelude::WithParent::with_parent(inner(), stringify!(#enum_name))
+                bytebuffer::prelude::WithParent::with_parent(inner(), stringify!(#enum_name))
             }
 
-            fn to_buf(&self, buf: &mut serbytes::prelude::WriteByteBufferOwned) {
+            fn to_buf(&self, buf: &mut bytebuffer::prelude::WriteByteBufferOwned) {
                 buf.reserve(Self::approx_size(self));
 
                 match self {

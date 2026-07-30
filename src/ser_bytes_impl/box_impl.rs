@@ -1,5 +1,5 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::prelude::{SerBytes, SerBytesStaticSized};
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 
 impl<S> SerBytes for Box<S>
 where

@@ -1,4 +1,4 @@
-use serbytes::prelude::{ReadByteBufferOwned, WriteByteBufferOwned};
+use bytebuffer::prelude::{ReadByteBufferOwned, WriteByteBufferOwned};
 
 #[test]
 fn test_individual_bits() {
@@ -106,41 +106,6 @@ fn test_write_bits() {
         rbb.read_bits(7).expect("7 Bits to be able to be read"),
         bits
     );
-}
-
-#[test]
-fn test_index_pointer() {
-    let mut wbb = WriteByteBufferOwned::new();
-
-    let test_i32 = 28954;
-    let test_u64 = 8235213245;
-
-    let i32_index_ptr = wbb.write_with_index_pointer(&test_i32);
-    wbb.write_u64(test_u64);
-
-    let new_i32 = 187452;
-
-    wbb.write_at_index_pointer(i32_index_ptr, &new_i32);
-
-    let mut dyn_sized = vec![10, 20, 30];
-
-    let ip_dst = wbb.write_with_index_pointer(&dyn_sized);
-
-    dyn_sized.push(60);
-
-    wbb.try_write_at_index_pointer(ip_dst, &dyn_sized)
-        .expect_err("Fail to write a different sized type to the buffer");
-
-    let mut rbb = ReadByteBufferOwned::from_vec(wbb.into_vec());
-
-    let i32_read_value = rbb.read_i32().expect("Read i32 from buf");
-    let u64_read_value = rbb.read_u64().expect("Read u64 from buf");
-
-    assert_ne!(test_i32, i32_read_value);
-
-    assert_eq!(new_i32, i32_read_value);
-
-    assert_eq!(test_u64, u64_read_value);
 }
 
 #[test]

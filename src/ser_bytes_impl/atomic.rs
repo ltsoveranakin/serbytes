@@ -1,5 +1,5 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 impl SerBytes for AtomicU64 {

@@ -1,5 +1,4 @@
-mod read;
-mod write;
+pub mod index_pointer;
+pub mod read;
 
-pub use read::*;
-pub use write::*;
+pub use index_pointer::*;

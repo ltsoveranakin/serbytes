@@ -1,4 +1,4 @@
-use crate::bytebuffer::{
+use bytebuffer::prelude::{
     BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned,
 };
 

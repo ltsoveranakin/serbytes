@@ -26,11 +26,11 @@ pub use sized_block::*;
 pub use skip_ser::*;
 pub use versioning_wrapper::*;
 
-use crate::bytebuffer::{
-    BBReadResult, ReadByteBufferRefMut, ReadError, SpecificError, WithParent, WriteByteBufferOwned,
-};
 use crate::ser_bytes_impl::ser_bytes_impl_macro::{ser_data_impl, ser_data_impl_u};
 use crate::ser_trait::{SerBytes, SerBytesStaticSized};
+use bytebuffer::prelude::{
+    BBReadResult, ReadByteBufferRefMut, ReadError, SpecificError, WithParent, WriteByteBufferOwned,
+};
 use std::cmp::Ordering;
 use std::marker::PhantomData;
 

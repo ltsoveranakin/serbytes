@@ -1,3 +1,6 @@
+use bytebuffer::prelude::{
+    BBReadResult, ReadByteBufferOwned, ReadByteBufferRefMut, WriteByteBufferOwned,
+};
 use serbytes::prelude::*;
 
 #[test]

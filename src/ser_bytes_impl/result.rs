@@ -1,5 +1,5 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, ReadError, WriteByteBufferOwned};
 use crate::prelude::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, ReadError, WriteByteBufferOwned};
 
 impl<'a, S, E> SerBytes for Result<S, E>
 where

@@ -1,5 +1,5 @@
-use crate::bytebuffer::{ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::{BBReadResult, SerBytes};
+use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 
 /// Work in progress type
 pub struct Size(usize);

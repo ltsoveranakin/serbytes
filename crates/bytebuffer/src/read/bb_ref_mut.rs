@@ -1,5 +1,5 @@
-use crate::bytebuffer::read::read_macro::read_ref_ty;
-use crate::bytebuffer::{BBReadResult, ReadByteBufferSlice, ReadError, SpecificError, WithParent};
+use crate::read::read_macro::read_ref_ty;
+use crate::read::{BBReadResult, ReadByteBufferSlice, ReadError, SpecificError, WithParent};
 use std::ops::Index;
 
 pub struct ReadByteBufferRefMut<'a> {

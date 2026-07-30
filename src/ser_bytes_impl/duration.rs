@@ -1,6 +1,6 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use crate::ser_bytes_impl::from_buf;
 use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use std::time::Duration;
 
 impl SerBytes for Duration {

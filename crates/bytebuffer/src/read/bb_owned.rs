@@ -1,6 +1,6 @@
-use crate::bytebuffer::read::read_macro::read_owned_ty;
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
-use crate::prelude::ReadByteBufferSlice;
+use crate::read::read_macro::read_owned_ty;
+use crate::read::{BBReadResult, ReadByteBufferRefMut, ReadByteBufferSlice};
+use crate::write::WriteByteBufferOwned;
 
 pub struct ReadByteBufferOwned {
     buf: Vec<u8>,

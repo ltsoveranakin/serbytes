@@ -3,15 +3,15 @@ macro_rules! ser_data_impl {
         impl crate::ser_trait::SerBytes for $t {
             #[inline(always)]
             fn from_buf(
-                buf: &mut crate::bytebuffer::ReadByteBufferRefMut,
-            ) -> crate::bytebuffer::BBReadResult<Self> {
+                buf: &mut bytebuffer::prelude::ReadByteBufferRefMut,
+            ) -> bytebuffer::prelude::BBReadResult<Self> {
                 paste::paste! {
                     buf.[<read_ $call_signature>]()
                 }
             }
 
             #[inline(always)]
-            fn to_buf(&self, buf: &mut crate::bytebuffer::WriteByteBufferOwned) {
+            fn to_buf(&self, buf: &mut bytebuffer::prelude::WriteByteBufferOwned) {
                 paste::paste! {
                     buf.[<write_ $call_signature>](*self);
                 }

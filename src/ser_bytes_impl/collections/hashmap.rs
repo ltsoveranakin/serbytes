@@ -1,16 +1,14 @@
+use crate::prelude::{SerBytes, from_buf};
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-
-use crate::bytebuffer;
-use crate::bytebuffer::{ReadByteBufferRefMut, WithParent, WriteByteBufferOwned};
-use crate::prelude::{SerBytes, from_buf};
 
 impl<K, V> SerBytes for HashMap<K, V>
 where
     K: SerBytes + Eq + Hash,
     V: SerBytes,
 {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
         let mut inner = || {
             let len = u16::from_buf(buf)? as usize;
             let mut map = Self::with_capacity(len);
@@ -57,7 +55,7 @@ impl<K> SerBytes for HashSet<K>
 where
     K: SerBytes + Eq + Hash,
 {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
         let mut inner = || {
             let len = u16::from_buf(buf)?;
             let mut set = HashSet::with_capacity(len as usize);

@@ -1,12 +1,11 @@
-use crate::bytebuffer;
-use crate::bytebuffer::{
-    ReadByteBufferRefMut, ReadError, SpecificError, WithParent, WriteByteBufferOwned,
-};
 use crate::prelude::SerBytes;
 use crate::ser_bytes_impl::U8Vec;
+use bytebuffer::prelude::{
+    BBReadResult, ReadByteBufferRefMut, ReadError, SpecificError, WithParent, WriteByteBufferOwned,
+};
 
 impl SerBytes for String {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> bytebuffer::BBReadResult<Self> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self> {
         let mut inner = || {
             let u8_vec = U8Vec::<u16>::from_buf(buf)?;
 

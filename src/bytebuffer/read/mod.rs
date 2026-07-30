@@ -1,43 +1,93 @@
-mod bb_owned;
-mod bb_ref_mut;
-mod bb_slice;
-mod read_error;
-mod read_macro;
+use crate::bytebuffer::index_pointer::write::IndexPointerWrite;
+use crate::ser_bytes_impl::from_buf;
+use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{
+    BBReadResult, ReadByteBufferRefMut, ReadError, SpecificError, WriteByteBufferOwned,
+};
 
-pub use bb_owned::*;
-pub use bb_ref_mut::*;
-pub use bb_slice::*;
-pub use read_error::*;
+impl<'s> SerBytes for ReadError<'s> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        let specific_error = from_buf(buf)?;
+        let of = String::from_buf(buf)?;
+        let child = from_buf(buf)?;
 
-pub trait ReadByteBuffer {
-    fn read_bit(&mut self) -> BBReadResult<u8>;
+        Ok(Self::new(specific_error, of, child))
+    }
 
-    /// Resets the bit index to 0 and moves the head over to the next available byte
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        self.specific_error.to_buf(buf);
+        self.of.to_buf(buf);
+        self.child.to_buf(buf);
+    }
+}
 
-    fn flush_bits(&mut self);
+impl<'s> SerBytes for SpecificError<'s> {
+    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
+    where
+        Self: Sized,
+    {
+        let ordinal = buf.read_u8()?;
 
-    fn read_bits(&mut self, count: usize) -> BBReadResult<u8>;
+        let s = match ordinal {
+            0 => Self::U8,
+            1 => Self::Bytes {
+                remaining_bytes: from_buf(buf)?,
+                got: from_buf(buf)?,
+            },
+            2 => Self::SingleBit,
+            3 => Self::RemainingBits,
+            4 => Self::EnumOrdinalOutOfBounds {
+                max_bound: from_buf(buf)?,
+                got: from_buf(buf)?,
+            },
+            5 => Self::Other(from_buf(buf)?),
+            _ => {
+                return Err(ReadError::new(
+                    SpecificError::EnumOrdinalOutOfBounds {
+                        max_bound: 5,
+                        got: ordinal,
+                    },
+                    "SpecificError",
+                    None,
+                ));
+            }
+        };
 
-    fn read_remaining_bits(&mut self) -> BBReadResult<u8>;
+        Ok(s)
+    }
 
-    fn read_bool(&mut self) -> BBReadResult<bool>;
+    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
+        let ord_ip = buf.write_with_index_pointer(&0u8);
 
-    fn read_bytes(&mut self, size: usize) -> BBReadResult<&[u8]>;
+        let ord = match self {
+            Self::U8 => 0,
+            Self::Bytes {
+                remaining_bytes,
+                got,
+            } => {
+                remaining_bytes.to_buf(buf);
+                got.to_buf(buf);
 
-    fn read_u8(&mut self) -> BBReadResult<u8>;
-    fn read_u16(&mut self) -> BBReadResult<u16>;
-    fn read_u32(&mut self) -> BBReadResult<u32>;
-    fn read_u64(&mut self) -> BBReadResult<u64>;
-    fn read_u128(&mut self) -> BBReadResult<u128>;
+                1
+            }
+            Self::SingleBit => 2,
+            Self::RemainingBits => 3,
+            Self::EnumOrdinalOutOfBounds { got, max_bound } => {
+                max_bound.to_buf(buf);
+                got.to_buf(buf);
 
-    fn read_i8(&mut self) -> BBReadResult<i8>;
-    fn read_i16(&mut self) -> BBReadResult<i16>;
-    fn read_i32(&mut self) -> BBReadResult<i32>;
-    fn read_i64(&mut self) -> BBReadResult<i64>;
-    fn read_i128(&mut self) -> BBReadResult<i128>;
+                4
+            }
+            Self::Other(other_str) => {
+                other_str.to_buf(buf);
 
-    fn read_f32(&mut self) -> BBReadResult<f32>;
-    fn read_f64(&mut self) -> BBReadResult<f64>;
+                5
+            }
+        };
 
-    fn peek(&self) -> ReadByteBufferSlice<'_>;
+        buf.write_at_index_pointer(ord_ip, &ord);
+    }
 }

@@ -1,4 +1,4 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 
 pub trait SerbytesMapped<T> {
     fn from_buf_mapped<F>(buf: &mut ReadByteBufferRefMut, reader: F) -> BBReadResult<Self>

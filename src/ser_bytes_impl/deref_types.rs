@@ -1,7 +1,7 @@
-use crate::bytebuffer::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use crate::prelude::{SerBytes, from_buf};
 use crate::ser_bytes_impl::{into_slice_from_buf_u16, slice_to_buf_u16};
 use crate::ser_trait::SerBytesStaticSized;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::Arc;

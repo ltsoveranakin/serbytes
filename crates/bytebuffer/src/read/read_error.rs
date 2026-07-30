@@ -4,32 +4,28 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::ErrorKind;
 
-mod serbytes {
-    pub use crate::*;
-}
-
 pub type BBReadResult<T> = Result<T, ReadError<'static>>;
 
 /// An error that represents an inability to read or deserialize a type in some shape or form
 ///
 /// Most of the time you can get away with a static lifetime here, it only exists for future proofing and custom implementations
 
-#[derive(ser_bytes_derive::SerBytes, Debug, Clone, Eq, PartialEq)]
-pub struct ReadError<'a> {
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct ReadError<'s> {
     /// The specific error generated from being deserialized, this is the value of the individual bytebuffer fail
     ///
     /// For example when reading a [String] first a [u16] (we'll call x) is read then based on the resulting number, that many bytes are read.
     /// If reading the x number of bytes fails then the [`SpecificError`] will be [`SpecificError::Bytes`]
-    pub specific_error: SpecificError<'a>,
+    pub specific_error: SpecificError<'s>,
     /// The full type name which is being deserialized
     ///
     /// For example "String"
-    of: Cow<'a, str>,
+    pub of: Cow<'s, str>,
     /// If the value being deserialized is a subset of another
     ///
     /// For example elements of type S in a `Vec<S>`
     /// As in, if a `Vec<S>` fails to be deserialized, this field should be `Some` with the read error of S
-    child: Option<Box<Self>>,
+    pub child: Option<Box<Self>>,
 }
 
 impl<'a> ReadError<'a> {
@@ -110,15 +106,14 @@ impl<'a> From<io::Error> for ReadError<'a> {
     }
 }
 
-#[derive(ser_bytes_derive::SerBytes, Debug, Clone, Eq, PartialEq)]
-pub enum SpecificError<'a> {
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum SpecificError<'s> {
     U8,
-    I8,
     Bytes { remaining_bytes: u32, got: u32 },
-    Bool,
     SingleBit,
     RemainingBits,
-    Other(Cow<'a, str>),
+    EnumOrdinalOutOfBounds { max_bound: u8, got: u8 },
+    Other(Cow<'s, str>),
 }
 
 impl<'a> Display for SpecificError<'a> {
@@ -126,23 +121,23 @@ impl<'a> Display for SpecificError<'a> {
         let s = match self {
             Self::U8 => "U8",
 
-            Self::I8 => "I8",
-
             Self::Bytes {
                 remaining_bytes,
                 got,
             } => &format!("Bytes, remaining: {}; got: {}", remaining_bytes, got),
 
-            Self::Bool => "Bool",
-
             Self::SingleBit => "SingleBit",
 
             Self::RemainingBits => "RemainingBits",
 
+            Self::EnumOrdinalOutOfBounds { got, max_bound } => {
+                &format!("EnumBounds, max bound expected: {max_bound}; got: {got}")
+            }
+
             Self::Other(other) => &format!("Other: {}", other),
         };
 
-        write!(f, "SpecificError: {}", s)
+        write!(f, "SpecificError::{}", s)
     }
 }
 

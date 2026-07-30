@@ -1,5 +1,7 @@
-use crate::bytebuffer::{BBReadResult, IndexPointer, ReadByteBufferRefMut, WriteByteBufferOwned};
+use crate::bytebuffer::index_pointer::IndexPointer;
+use crate::bytebuffer::index_pointer::write::IndexPointerWrite;
 use crate::ser_trait::SerBytes;
+use bytebuffer::prelude::{BBReadResult, ReadByteBufferRefMut, WriteByteBufferOwned};
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::marker::PhantomData;

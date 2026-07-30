@@ -1,4 +1,4 @@
-use crate::bytebuffer::ReadByteBufferRefMut;
+use crate::read::ReadByteBufferRefMut;
 
 pub struct ReadByteBufferSlice<'a> {
     pub(super) buf: &'a [u8],
