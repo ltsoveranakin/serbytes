@@ -7,7 +7,7 @@ edition = "2024"
 byteorder = "1.5"
 glam = { version = "0.32", optional = true }
 paste = "1.0"
-ser_bytes_derive = { path = "./macros/ser_bytes_derive" }
+ser_bytes_derive = { path = "./crates/macros/ser_bytes_derive" }
 
 [features]
 glam = ["dep:glam"]
