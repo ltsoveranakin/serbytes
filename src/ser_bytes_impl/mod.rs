@@ -1,3 +1,4 @@
+pub mod atomic;
 pub mod box_impl;
 mod byte_tag;
 pub mod collections;
