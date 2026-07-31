@@ -66,7 +66,7 @@ where
 }
 
 #[inline(always)]
-pub fn to_buf<S>(s: &S, buf: &mut WriteByteBufferOwned)
+pub fn to_buf<S>(buf: &mut WriteByteBufferOwned, s: &S)
 where
     S: SerBytes,
 {

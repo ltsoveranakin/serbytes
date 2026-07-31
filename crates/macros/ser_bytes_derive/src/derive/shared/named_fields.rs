@@ -31,7 +31,7 @@ pub(crate) fn impl_to_named_fields(named_fields: &FieldsNamed) -> ToBufTokens {
         });
 
         to_body.push(quote! {
-            serbytes::prelude::to_buf(#ident, buf);
+            serbytes::prelude::to_buf(buf, #ident);
         });
     }
 
