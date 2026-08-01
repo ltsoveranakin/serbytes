@@ -1,10 +1,11 @@
-use crate::derive::shared::named_fields::{
-    ToBufTokens, impl_approx_size_named_fields, impl_from_named_fields, impl_to_named_fields,
-};
-use crate::derive::shared::unnamed_fields::{
-    impl_approx_size_unnamed_fields, impl_from_unnamed_fields, impl_to_unnamed_fields,
-};
-use crate::derive::shared::{FunctionBodies, impl_size_hint};
+pub mod named;
+pub mod unit;
+pub mod unnamed;
+
+use crate::derive::shared::FunctionBodies;
+use crate::derive::struct_derive::named::derive_named;
+use crate::derive::struct_derive::unit::derive_unit;
+use crate::derive::struct_derive::unnamed::derive_unnamed;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::{DataStruct, Fields, Generics};
@@ -14,86 +15,19 @@ pub(super) fn impl_derive_struct(
     struct_name: Ident,
     generics: Generics,
 ) -> TokenStream {
-    let DataStruct { fields, .. } = struct_data;
+    let DataStruct { fields, .. } = &struct_data;
 
     let FunctionBodies {
         from_function_body,
         to_function_body,
         approx_size_function_body,
         size_hint_function_body,
-    } = match &fields {
-        Fields::Named(named_fields) => {
-            let from_body = impl_from_named_fields(named_fields);
-            let ToBufTokens { destructure, body } = impl_to_named_fields(named_fields);
-            let approx_size_body = impl_approx_size_named_fields(named_fields);
-            let size_hint_function_body = impl_size_hint(&named_fields.named);
+    } = match fields {
+        Fields::Named(named_fields) => derive_named(&struct_name, named_fields),
 
-            let from_function_body = quote! {
-                Ok(#struct_name {
-                    #from_body
-                })
-            };
+        Fields::Unnamed(unnamed_fields) => derive_unnamed(&struct_name, unnamed_fields),
 
-            let to_function_body = quote! {
-                let #struct_name {
-                    #destructure
-                } = self;
-
-                #body
-            };
-
-            let approx_size_function_body = quote! {
-                let #struct_name {
-                    #destructure
-                } = self;
-
-                #approx_size_body
-            };
-
-            FunctionBodies {
-                from_function_body,
-                to_function_body,
-                approx_size_function_body,
-                size_hint_function_body,
-            }
-        }
-
-        Fields::Unnamed(unnamed_fields) => {
-            let from_body = impl_from_unnamed_fields(unnamed_fields);
-            let ToBufTokens { destructure, body } = impl_to_unnamed_fields(unnamed_fields);
-            let approx_size_body = impl_approx_size_unnamed_fields(unnamed_fields);
-            let size_hint_function_body = impl_size_hint(&unnamed_fields.unnamed);
-
-            FunctionBodies {
-                from_function_body: quote! {
-                    Ok(#struct_name(#from_body))
-                },
-                to_function_body: quote! {
-                    let #struct_name(#destructure) = self;
-
-                    #body
-                },
-                approx_size_function_body: quote! {
-                     let #struct_name(#destructure) = self;
-
-                    #approx_size_body
-                },
-                size_hint_function_body,
-            }
-        }
-
-        Fields::Unit => FunctionBodies {
-            from_function_body: quote! {
-                Ok(#struct_name)
-            },
-            to_function_body: TokenStream::new(),
-            approx_size_function_body: quote! {
-                0
-            },
-            size_hint_function_body: quote! {
-                0
-            },
-        },
+        Fields::Unit => derive_unit(&struct_name),
     };
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
