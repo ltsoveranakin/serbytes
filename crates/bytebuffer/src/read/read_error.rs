@@ -109,10 +109,18 @@ impl<'a> From<io::Error> for ReadError<'a> {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum SpecificError<'s> {
     U8,
-    Bytes { remaining_bytes: u32, got: u32 },
+    Bytes {
+        remaining_bytes: u32,
+        got: u32,
+    },
     SingleBit,
     RemainingBits,
-    EnumOrdinalOutOfBounds { max_bound: u8, got: u8 },
+    EnumOrdinalOutOfBounds {
+        max_bound: u8,
+        got: u8,
+    },
+    /// Error produced when deriving an invalid for serialization (an empty enum)
+    InvalidEnum,
     Other(Cow<'s, str>),
 }
 
@@ -133,6 +141,8 @@ impl<'a> Display for SpecificError<'a> {
             Self::EnumOrdinalOutOfBounds { got, max_bound } => {
                 &format!("EnumBounds, max bound expected: {max_bound}; got: {got}")
             }
+
+            Self::InvalidEnum => "InvalidEnum",
 
             Self::Other(other) => &format!("Other: {}", other),
         };

@@ -11,7 +11,7 @@ pub(super) fn derive_unit(variant_name: &Ident, index: u8) -> FunctionBodies<()>
 
     let to_function_body = quote! {
         Self::#variant_name => {
-            #index.to_buf(buf);
+            serbytes::prelude::to_buf(buf, &#index);
         }
     };
 

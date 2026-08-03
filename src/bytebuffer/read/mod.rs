@@ -1,3 +1,4 @@
+use crate::bytebuffer::IndexPointer;
 use crate::bytebuffer::index_pointer::write::IndexPointerWrite;
 use crate::ser_bytes_impl::from_buf;
 use crate::ser_trait::SerBytes;
@@ -43,7 +44,8 @@ impl<'s> SerBytes for SpecificError<'s> {
                 max_bound: from_buf(buf)?,
                 got: from_buf(buf)?,
             },
-            5 => Self::Other(from_buf(buf)?),
+            5 => Self::InvalidEnum,
+            6 => Self::Other(from_buf(buf)?),
             _ => {
                 return Err(ReadError::new(
                     SpecificError::EnumOrdinalOutOfBounds {
@@ -60,7 +62,7 @@ impl<'s> SerBytes for SpecificError<'s> {
     }
 
     fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        let ord_ip = buf.write_with_index_pointer(&0u8);
+        let ord_ip: IndexPointer<u8> = buf.write_with_index_pointer(&0);
 
         let ord = match self {
             Self::U8 => 0,
@@ -81,10 +83,11 @@ impl<'s> SerBytes for SpecificError<'s> {
 
                 4
             }
+            Self::InvalidEnum => 5,
             Self::Other(other_str) => {
                 other_str.to_buf(buf);
 
-                5
+                6
             }
         };
 

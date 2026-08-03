@@ -27,7 +27,8 @@ pub(super) fn derive_named(
         Self::#variant_ident {
             #destructure
         } => {
-            #index.to_buf(buf);
+            serbytes::prelude::to_buf(buf, &#index);
+
             #body
         }
     };

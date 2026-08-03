@@ -57,11 +57,12 @@ pub(crate) fn impl_approx_size_unnamed_fields(
 
     let mut i = 0;
 
-    for _ in &unnamed_fields.unnamed {
+    for unnamed_field in &unnamed_fields.unnamed {
         let destructure_var = Ident::new(&format!("field{}", i), Span::call_site());
+        let field_ty = &unnamed_field.ty;
 
         approx_size_body_tokens.push(quote! {
-            #destructure_var.approx_size()
+            <#field_ty as serbytes::prelude::SerBytes>::approx_size(#destructure_var)
         });
 
         i += 1;

@@ -21,20 +21,35 @@ pub(super) fn derive_named(
         })
     };
 
-    let to_function_body = quote! {
-        let #struct_name {
-            #destructure
-        } = self;
+    let not_empty = !named_fields.named.is_empty();
 
-        #body
+    let to_function_body = if not_empty {
+        quote! {
+            serbytes::prelude::WriteByteBufferOwned::reserve(buf, Self::approx_size(self));
+
+            let #struct_name {
+                #destructure
+            } = self;
+
+            #body
+        }
+    } else {
+        // Empty
+        quote! {}
     };
 
-    let approx_size_function_body = quote! {
-        let #struct_name {
-            #destructure
-        } = self;
+    let approx_size_function_body = if not_empty {
+        quote! {
+            let #struct_name {
+                #destructure
+            } = self;
 
-        #approx_size_body
+            #approx_size_body
+        }
+    } else {
+        quote! {
+            0
+        }
     };
 
     FunctionBodies {
